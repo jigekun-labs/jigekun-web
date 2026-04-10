@@ -29,7 +29,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2">
           <Image src="/icon.png" alt="GGUN" width={32} height={32} className="rounded-lg" />
-          <span className="text-xl font-bold text-[var(--gray-900)]">GGUN</span>
+          <span className="text-xl font-bold text-[var(--gray-900)]">지게꾼</span>
         </a>
 
         <nav className="hidden md:flex items-center gap-8">

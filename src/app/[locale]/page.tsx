@@ -56,21 +56,14 @@ async function HeroSection() {
         <div className="hidden lg:flex justify-center animate-fade-in-up-delay">
           <div className="relative">
             <div className="animate-float">
-              <div className="w-[300px] h-[600px] bg-[var(--gray-900)] rounded-[3rem] p-3 shadow-2xl shadow-black/20">
-                <div className="w-full h-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] rounded-[2.3rem] flex flex-col items-center justify-center text-white p-8">
-                  <Image src="/icon.png" alt="GGUN" width={80} height={80} className="rounded-2xl mb-6" />
-                  <h3 className="text-2xl font-bold mb-2">GGUN</h3>
-                  <p className="text-sm text-white/70 text-center">{t("phoneTagline")}</p>
-                  <div className="mt-8 w-full space-y-3">
-                    <div className="h-10 bg-white/15 rounded-xl" />
-                    <div className="h-10 bg-white/15 rounded-xl" />
-                    <div className="h-10 bg-white/10 rounded-xl" />
-                  </div>
-                  <div className="mt-6 w-full h-12 bg-[var(--accent)] rounded-xl flex items-center justify-center font-semibold text-sm">
-                    {t("phoneButton")}
-                  </div>
-                </div>
-              </div>
+              <Image
+                src="/hero-devices.png"
+                alt="GGUN App Screenshots"
+                width={500}
+                height={550}
+                className="object-contain"
+                priority
+              />
             </div>
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-[var(--accent)] opacity-20 rounded-full blur-xl" />
             <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-[var(--primary)] opacity-10 rounded-full blur-xl" />
