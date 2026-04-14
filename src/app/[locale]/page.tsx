@@ -54,13 +54,23 @@ async function HeroSection() {
         </div>
 
         <div className="hidden lg:flex justify-center animate-fade-in-up-delay">
-          <div className="relative">
-            <div className="animate-float">
+          <div className="relative flex items-center gap-6">
+            <div className="animate-float rounded-[2.5rem] border-[6px] border-gray-900 shadow-2xl overflow-hidden bg-black">
               <Image
-                src="/hero-devices.png"
-                alt="GGUN App Screenshots"
-                width={500}
-                height={550}
+                src="/hero-screen-1.png"
+                alt="GGUN App Splash Screen"
+                width={240}
+                height={520}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="animate-float rounded-[2.5rem] border-[6px] border-gray-900 shadow-2xl overflow-hidden bg-black" style={{ animationDelay: "0.3s" }}>
+              <Image
+                src="/hero-screen-2.png"
+                alt="GGUN App Role Selection Screen"
+                width={240}
+                height={520}
                 className="object-contain"
                 priority
               />

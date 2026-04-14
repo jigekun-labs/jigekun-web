@@ -13,7 +13,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "GGUN - 지게꾼 | Find Temporary Work, Instantly",
+  title: "지게꾼",
   description:
     "GGUN connects employers who need temporary workers with reliable people ready to work. Post jobs, get matched, and get paid — all in one app.",
   icons: {
