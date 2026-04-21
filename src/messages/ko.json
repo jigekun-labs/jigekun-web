@@ -108,5 +108,9 @@
     "contact": "문의하기",
     "rights": "© All rights reserved.",
     "koreanTagline": "지게꾼 - 일자리를 연결합니다"
+  },
+  "Legal": {
+    "noticeTitle": "안내",
+    "noticeBody": "본 문서는 원문이 한국어로 작성되어 있으며, 공식 문서는 한국어 버전을 기준으로 합니다."
   }
 }

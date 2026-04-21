@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 
 export default async function Footer() {
   const t = await getTranslations("Footer");
@@ -38,9 +39,9 @@ export default async function Footer() {
           <div>
             <h4 className="text-white font-semibold text-sm mb-4">{t("company")}</h4>
             <ul className="space-y-2.5 text-sm">
-              <li><a href="#" className="hover:text-white transition-colors">{t("terms")}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">{t("privacy")}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">{t("contact")}</a></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">{t("terms")}</Link></li>
+              <li><Link href="/privacy" className="hover:text-white transition-colors">{t("privacy")}</Link></li>
+              <li><a href="mailto:info@jigekun.com" className="hover:text-white transition-colors">{t("contact")}</a></li>
             </ul>
           </div>
         </div>

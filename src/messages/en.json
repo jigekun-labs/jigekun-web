@@ -108,5 +108,9 @@
     "contact": "Contact",
     "rights": "© All rights reserved.",
     "koreanTagline": "지게꾼 - Connecting jobs"
+  },
+  "Legal": {
+    "noticeTitle": "Notice",
+    "noticeBody": "This document is written in Korean, and the Korean version is the official and legally binding text. An English translation is not currently available."
   }
 }
