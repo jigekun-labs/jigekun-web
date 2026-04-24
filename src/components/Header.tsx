@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,10 +28,10 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Image src="/icon.png" alt="GGUN" width={32} height={32} className="rounded-lg" />
           <span className="text-xl font-bold text-[var(--gray-900)]">지게꾼</span>
-        </a>
+        </Link>
 
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
