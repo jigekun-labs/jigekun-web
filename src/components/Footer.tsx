@@ -41,6 +41,7 @@ export default async function Footer() {
             <ul className="space-y-2.5 text-sm">
               <li><Link href="/terms" className="hover:text-white transition-colors">{t("terms")}</Link></li>
               <li><Link href="/privacy" className="hover:text-white transition-colors">{t("privacy")}</Link></li>
+              <li><Link href="/delete-account" className="hover:text-white transition-colors">{t("deleteAccount")}</Link></li>
               <li><a href="mailto:info@jigekun.com" className="hover:text-white transition-colors">{t("contact")}</a></li>
             </ul>
           </div>
