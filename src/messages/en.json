@@ -7,13 +7,14 @@
     "downloadApp": "Download App"
   },
   "Hero": {
-    "badge": "Now available on iOS & Android",
+    "badge": "Now available on Google Play",
     "title1": "Find work.",
     "title2": "Find workers.",
     "title3": "Instantly.",
     "description": "GGUN connects employers who need temporary workers with reliable people ready to work. Post a job, get matched by location and reliability, and coordinate everything in one app.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
+    "comingSoon": "Coming soon",
     "phoneTagline": "지게꾼",
     "phoneButton": "Get Started"
   },
@@ -94,7 +95,8 @@
     "title": "Ready to get started?",
     "description": "Download GGUN today and join thousands of employers and workers who are already making temporary work simpler.",
     "ios": "Download for iOS",
-    "android": "Download for Android"
+    "android": "Download for Android",
+    "comingSoon": "Coming soon"
   },
   "Footer": {
     "tagline": "Connecting employers with reliable temporary workers. Post a job, get matched, get it done.",
