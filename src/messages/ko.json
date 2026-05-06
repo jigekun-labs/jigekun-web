@@ -7,14 +7,13 @@
     "downloadApp": "앱 다운로드"
   },
   "Hero": {
-    "badge": "Google Play에서 이용 가능",
+    "badge": "iOS & Android에서 이용 가능",
     "title1": "일자리를 찾고,",
     "title2": "인력을 구하고,",
     "title3": "바로 시작.",
     "description": "지게꾼은 임시 인력이 필요한 사업주와 일할 준비가 된 신뢰할 수 있는 사람들을 연결합니다. 일자리를 등록하고, 위치와 신뢰도 기반으로 매칭 받고, 모든 것을 하나의 앱에서 관리하세요.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoon": "출시 예정",
     "phoneTagline": "지게꾼",
     "phoneButton": "시작하기"
   },
@@ -95,8 +94,7 @@
     "title": "시작할 준비 되셨나요?",
     "description": "지금 지게꾼을 다운로드하고, 이미 임시 근무를 더 쉽게 만들고 있는 수천 명의 사업주와 근로자에 합류하세요.",
     "ios": "iOS 다운로드",
-    "android": "Android 다운로드",
-    "comingSoon": "출시 예정"
+    "android": "Android 다운로드"
   },
   "Footer": {
     "tagline": "사업주와 신뢰할 수 있는 임시 근로자를 연결합니다. 일자리를 올리고, 매칭 받고, 완료하세요.",
