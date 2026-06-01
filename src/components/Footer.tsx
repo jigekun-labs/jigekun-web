@@ -18,13 +18,13 @@ export default async function Footer() {
               {t("tagline")}
             </p>
             <div className="mt-6 space-y-1 text-xs leading-relaxed text-[var(--gray-400)]">
-              <p>상호명 : 주식회사 지게꾼랩스</p>
-              <p>주소 : 서울특별시 중구 동호로14길 19, 4층 454호(신당동)</p>
-              <p>대표 : 유준형</p>
-              <p>전화 : <a href="tel:01049668305" className="hover:text-white transition-colors">010-4966-8305</a></p>
-              <p>사업자등록번호 : 315-88-03756</p>
-              <p>통신판매업신고번호 (Mail-Order Sales Registration No.) : 2026-서울중구-847</p>
-              <p>이메일 : <a href="mailto:info@jigekun.com" className="hover:text-white transition-colors">info@jigekun.com</a></p>
+              <p>{t("business.companyName")}</p>
+              <p>{t("business.address")}</p>
+              <p>{t("business.ceo")}</p>
+              <p>{t("business.phoneLabel")} : <a href="tel:01049668305" className="hover:text-white transition-colors">010-4966-8305</a></p>
+              <p>{t("business.businessNumber")}</p>
+              <p>{t("business.mailOrderNumber")}</p>
+              <p>{t("business.emailLabel")} : <a href="mailto:info@jigekun.com" className="hover:text-white transition-colors">info@jigekun.com</a></p>
             </div>
           </div>
 

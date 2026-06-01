@@ -108,7 +108,16 @@
     "deleteAccount": "계정 삭제",
     "contact": "문의하기",
     "rights": "© All rights reserved.",
-    "koreanTagline": "지게꾼 - 일자리를 연결합니다"
+    "koreanTagline": "지게꾼 - 일자리를 연결합니다",
+    "business": {
+      "companyName": "상호명 : 주식회사 지게꾼랩스",
+      "address": "주소 : 서울특별시 중구 동호로14길 19, 4층 454호(신당동)",
+      "ceo": "대표 : 유준형",
+      "phoneLabel": "전화",
+      "businessNumber": "사업자등록번호 : 315-88-03756",
+      "mailOrderNumber": "통신판매업신고번호 : 2026-서울중구-847",
+      "emailLabel": "이메일"
+    }
   },
   "Legal": {
     "noticeTitle": "안내",

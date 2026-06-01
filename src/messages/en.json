@@ -108,7 +108,16 @@
     "deleteAccount": "Delete Account",
     "contact": "Contact",
     "rights": "© All rights reserved.",
-    "koreanTagline": "지게꾼 - Connecting jobs"
+    "koreanTagline": "지게꾼 - Connecting jobs",
+    "business": {
+      "companyName": "Company : Jigekun Labs Inc.",
+      "address": "Address : 4F 454, 19 Dongho-ro 14-gil, Jung-gu, Seoul",
+      "ceo": "CEO : Junhyung Yoo",
+      "phoneLabel": "Tel",
+      "businessNumber": "Business Registration No. : 315-88-03756",
+      "mailOrderNumber": "Mail-Order Sales Registration No. : 2026-서울중구-847",
+      "emailLabel": "Email"
+    }
   },
   "Legal": {
     "noticeTitle": "Notice",
