@@ -23,6 +23,7 @@ export default async function Footer() {
               <p>대표 : 유준형</p>
               <p>전화 : <a href="tel:01049668305" className="hover:text-white transition-colors">010-4966-8305</a></p>
               <p>사업자등록번호 : 315-88-03756</p>
+              <p>통신판매업신고번호 (Mail-Order Sales Registration No.) : 2026-서울중구-847</p>
               <p>이메일 : <a href="mailto:info@jigekun.com" className="hover:text-white transition-colors">info@jigekun.com</a></p>
             </div>
           </div>
