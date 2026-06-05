@@ -6,7 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-type LegalSlug = "terms" | "privacy" | "delete-account";
+type LegalSlug = "terms" | "privacy" | "delete-account" | "refund-policy";
 
 export default async function LegalPage({ slug }: { slug: LegalSlug }) {
   const locale = await getLocale();
