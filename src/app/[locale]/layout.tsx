@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -43,6 +45,11 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>
+        {/* Public site only — the /admin tree has its own root layout and is
+            deliberately left out, so private tooling never mixes into the
+            marketing numbers. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
