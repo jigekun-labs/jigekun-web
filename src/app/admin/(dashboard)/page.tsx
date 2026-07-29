@@ -1,18 +1,31 @@
 import Link from "next/link";
-import { globalSearch, listCollections } from "@/lib/firestore-view";
+import { requireAdmin } from "@/lib/admin-auth";
+import { globalSearch, listCollections, type CollectionInfo, type GlobalHit } from "@/lib/firestore-view";
+import LoadError from "@/components/admin/LoadError";
 
 export default async function AdminHome({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
+  // Gate the page itself, not just the layout: a layout and its page render
+  // concurrently, so a layout-only redirect does not stop the reads below from
+  // running (and throwing) first.
+  await requireAdmin();
+
   const { q } = await searchParams;
   const query = q?.trim() ?? "";
 
-  const [collections, hits] = await Promise.all([
-    listCollections(),
-    query ? globalSearch(query) : Promise.resolve([]),
-  ]);
+  let collections: CollectionInfo[];
+  let hits: GlobalHit[];
+  try {
+    [collections, hits] = await Promise.all([
+      listCollections(),
+      query ? globalSearch(query) : Promise.resolve<GlobalHit[]>([]),
+    ]);
+  } catch (e) {
+    return <LoadError error={e} />;
+  }
 
   return (
     <div className="px-8 py-8">

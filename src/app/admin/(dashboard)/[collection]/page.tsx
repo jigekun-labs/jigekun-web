@@ -1,13 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { requireAdmin } from "@/lib/admin-auth";
 import {
   fetchAll,
   fetchPage,
   listCollections,
   FULL_LOAD_LIMIT,
   PAGE_SIZE,
+  type Page,
 } from "@/lib/firestore-view";
 import DataTable from "@/components/admin/DataTable";
+import LoadError from "@/components/admin/LoadError";
 
 export default async function CollectionPage({
   params,
@@ -16,21 +19,35 @@ export default async function CollectionPage({
   params: Promise<{ collection: string }>;
   searchParams: Promise<{ cursor?: string; filter?: string }>;
 }) {
+  // Gate the page itself, not just the layout: a layout and its page render
+  // concurrently, so a layout-only redirect does not stop the reads below from
+  // running (and throwing) first.
+  await requireAdmin();
+
   const { collection } = await params;
   const { cursor, filter } = await searchParams;
 
-  // Only real collections — keeps a typo'd URL from turning into an empty
-  // table that looks like a collection with no documents.
-  const known = await listCollections();
-  const info = known.find((c) => c.name === collection);
-  if (!info) notFound();
+  let complete: boolean;
+  let page: Page;
+  try {
+    // Only real collections — keeps a typo'd URL from turning into an empty
+    // table that looks like a collection with no documents.
+    const known = await listCollections();
+    const info = known.find((c) => c.name === collection);
+    if (!info) notFound();
 
-  // Small enough to hand over whole? Then the table filters locally and every
-  // field is searchable by substring. Otherwise fall back to paging.
-  const complete = info.count >= 0 && info.count <= FULL_LOAD_LIMIT;
-  const page = complete
-    ? await fetchAll(collection)
-    : await fetchPage(collection, cursor);
+    // Small enough to hand over whole? Then the table filters locally and every
+    // field is searchable by substring. Otherwise fall back to paging.
+    complete = info.count >= 0 && info.count <= FULL_LOAD_LIMIT;
+    page = complete
+      ? await fetchAll(collection)
+      : await fetchPage(collection, cursor);
+  } catch (e) {
+    // notFound() throws a NEXT_NOT_FOUND signal — let it through, don't swallow
+    // it as a load error.
+    if (e && typeof e === "object" && "digest" in e) throw e;
+    return <LoadError error={e} />;
+  }
 
   return (
     <div className="flex h-screen flex-col">
