@@ -29,6 +29,49 @@ function searchableText(row: Row): string {
   return parts.join(" ").toLowerCase();
 }
 
+/**
+ * A cell reduced to something orderable. Dates are ISO strings, which sort
+ * chronologically as plain text; booleans become 0/1; maps/arrays sort by their
+ * preview. null means "no value" and is always pushed to the end (below).
+ */
+function sortKey(value: CellValue | undefined): number | string | null {
+  if (!value || value.kind === "null") return null;
+  switch (value.kind) {
+    case "number":
+      return value.value;
+    case "bool":
+      return value.value ? 1 : 0;
+    case "date":
+      return value.value;
+    case "string":
+      return value.value;
+    case "json":
+      return value.preview;
+  }
+}
+
+type SortDir = "asc" | "desc";
+
+function compareRows(a: Row, b: Row, field: string, dir: SortDir): number {
+  const ka = sortKey(a.cells[field]);
+  const kb = sortKey(b.cells[field]);
+
+  // Empty values sink to the bottom regardless of direction.
+  if (ka === null && kb === null) return 0;
+  if (ka === null) return 1;
+  if (kb === null) return -1;
+
+  const c =
+    typeof ka === "number" && typeof kb === "number"
+      ? ka - kb
+      : String(ka).localeCompare(String(kb), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+
+  return dir === "asc" ? c : -c;
+}
+
 function Cell({ value }: { value: CellValue | undefined }) {
   if (!value || value.kind === "null") {
     return <span className="text-gray-300">—</span>;
@@ -90,6 +133,22 @@ export default function DataTable({
 }) {
   const [selected, setSelected] = useState<Row | null>(null);
   const [filter, setFilter] = useState(initialFilter);
+  const [sort, setSort] = useState<{ field: string; dir: SortDir } | null>(null);
+
+  // Sorting reorders whatever rows are loaded. For a paged (incomplete)
+  // collection that would only reorder the current page, which is misleading,
+  // so headers are sortable only when the whole collection is in the browser.
+  const sortable = complete;
+
+  // id is deliberately excluded (it's an opaque key, not meaningful data).
+  function toggleSort(col: string) {
+    if (!sortable || col === "id") return;
+    setSort((prev) => {
+      if (!prev || prev.field !== col) return { field: col, dir: "asc" };
+      if (prev.dir === "asc") return { field: col, dir: "desc" };
+      return null; // third click → back to the default (newest-first) order
+    });
+  }
 
   // Indexed once per page load, not per keystroke.
   const index = useMemo(
@@ -98,12 +157,22 @@ export default function DataTable({
   );
 
   const needle = filter.trim().toLowerCase();
-  const visible = useMemo(
+  const filtered = useMemo(
     () =>
       needle
         ? index.filter((entry) => entry.text.includes(needle)).map((e) => e.row)
         : rows,
     [index, needle, rows]
+  );
+
+  // Filter first, then sort. Array.prototype.sort is stable, so rows with equal
+  // keys keep the server's default order (newest first).
+  const visible = useMemo(
+    () =>
+      sort
+        ? [...filtered].sort((a, b) => compareRows(a, b, sort.field, sort.dir))
+        : filtered,
+    [filtered, sort]
   );
 
   if (rows.length === 0) {
@@ -152,14 +221,44 @@ export default function DataTable({
         <table className="w-full border-collapse text-sm">
           <thead className="sticky top-0 z-10 bg-gray-50">
             <tr>
-              {columns.map((col) => (
-                <th
-                  key={col}
-                  className="whitespace-nowrap border-b border-gray-200 px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500"
-                >
-                  {col}
-                </th>
-              ))}
+              {columns.map((col) => {
+                const isSortable = sortable && col !== "id";
+                const active = sort?.field === col;
+                return (
+                  <th
+                    key={col}
+                    aria-sort={
+                      active
+                        ? sort!.dir === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
+                    className="whitespace-nowrap border-b border-gray-200 px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500"
+                  >
+                    {isSortable ? (
+                      <button
+                        onClick={() => toggleSort(col)}
+                        className="group flex items-center gap-1 uppercase tracking-wide hover:text-gray-900"
+                        title={`${col} 기준 정렬`}
+                      >
+                        {col}
+                        <span
+                          className={`text-[10px] leading-none ${
+                            active
+                              ? "text-gray-900"
+                              : "text-gray-300 group-hover:text-gray-400"
+                          }`}
+                        >
+                          {active ? (sort!.dir === "asc" ? "▲" : "▼") : "↕"}
+                        </span>
+                      </button>
+                    ) : (
+                      col
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
