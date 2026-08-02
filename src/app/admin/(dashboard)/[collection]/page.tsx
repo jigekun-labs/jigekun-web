@@ -10,6 +10,7 @@ import {
   type Page,
 } from "@/lib/firestore-view";
 import DataTable from "@/components/admin/DataTable";
+import AddFieldButton from "@/components/admin/AddFieldButton";
 import LoadError from "@/components/admin/LoadError";
 
 export default async function CollectionPage({
@@ -29,6 +30,7 @@ export default async function CollectionPage({
 
   let complete: boolean;
   let page: Page;
+  let total: number;
   try {
     // Only real collections — keeps a typo'd URL from turning into an empty
     // table that looks like a collection with no documents.
@@ -38,6 +40,7 @@ export default async function CollectionPage({
 
     // Small enough to hand over whole? Then the table filters locally and every
     // field is searchable by substring. Otherwise fall back to paging.
+    total = info.count;
     complete = info.count >= 0 && info.count <= FULL_LOAD_LIMIT;
     page = complete
       ? await fetchAll(collection)
@@ -51,25 +54,29 @@ export default async function CollectionPage({
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="shrink-0 border-b border-gray-200 bg-white px-8 py-5">
-        <h1 className="font-mono text-lg font-bold text-gray-900">
-          {collection}
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {complete
-            ? `${page.rows.length.toLocaleString()}개 전체`
-            : `${page.total.toLocaleString()}개 중 ${page.rows.length}개 표시${
-                cursor ? " (다음 페이지)" : ""
-              }`}
-          <span className="ml-2 text-gray-400">
-            · 정렬 {page.sortedBy ? `${page.sortedBy} ↓` : "문서 ID"}
-          </span>
-        </p>
+      <header className="flex shrink-0 items-start justify-between gap-4 border-b border-gray-200 bg-white px-8 py-5">
+        <div className="min-w-0">
+          <h1 className="font-mono text-lg font-bold text-gray-900">
+            {collection}
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            {complete
+              ? `${page.rows.length.toLocaleString()}개 전체`
+              : `${page.total.toLocaleString()}개 중 ${page.rows.length}개 표시${
+                  cursor ? " (다음 페이지)" : ""
+                }`}
+            <span className="ml-2 text-gray-400">
+              · 정렬 {page.sortedBy ? `${page.sortedBy} ↓` : "문서 ID"}
+            </span>
+          </p>
+        </div>
+        <AddFieldButton collection={collection} docCount={total} />
       </header>
 
       <div className="min-h-0 flex-1 overflow-hidden">
         <DataTable
           key={filter ?? ""}
+          collection={collection}
           columns={page.columns}
           rows={page.rows}
           complete={complete}

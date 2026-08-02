@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { CellValue, Row } from "@/lib/firestore-view";
+import AddFieldForm from "./AddFieldForm";
 
 /**
  * Every value in a document, flattened to one lowercase string.
@@ -119,6 +120,7 @@ function Cell({ value }: { value: CellValue | undefined }) {
 }
 
 export default function DataTable({
+  collection,
   columns,
   rows,
   /** False when the table holds only one page, so the filter can say so. */
@@ -126,14 +128,20 @@ export default function DataTable({
   /** Prefilled from `?filter=`, so a global-search hit lands already narrowed. */
   initialFilter = "",
 }: {
+  collection: string;
   columns: string[];
   rows: Row[];
   complete?: boolean;
   initialFilter?: string;
 }) {
-  const [selected, setSelected] = useState<Row | null>(null);
+  // The id rather than the row itself: after a write the server sends fresh
+  // rows, and holding the old object would leave the panel showing stale JSON.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState(initialFilter);
   const [sort, setSort] = useState<{ field: string; dir: SortDir } | null>(null);
+
+  const selected = rows.find((row) => row.id === selectedId) ?? null;
 
   // Sorting reorders whatever rows are loaded. For a paged (incomplete)
   // collection that would only reorder the current page, which is misleading,
@@ -275,7 +283,10 @@ export default function DataTable({
             {visible.map((row) => (
               <tr
                 key={row.id}
-                onClick={() => setSelected(row)}
+                onClick={() => {
+                  setSelectedId(row.id);
+                  setAdding(false);
+                }}
                 className={`cursor-pointer border-b border-gray-100 transition hover:bg-blue-50/50 ${
                   selected?.id === row.id ? "bg-blue-50" : "bg-white"
                 }`}
@@ -306,7 +317,7 @@ export default function DataTable({
               </p>
             </div>
             <button
-              onClick={() => setSelected(null)}
+              onClick={() => setSelectedId(null)}
               className="shrink-0 text-sm text-gray-400 hover:text-gray-700"
             >
               닫기
@@ -315,6 +326,27 @@ export default function DataTable({
           <pre className="whitespace-pre-wrap break-all px-5 py-4 font-mono text-[12px] leading-relaxed text-gray-700">
             {selected.json}
           </pre>
+
+          <div className="border-t border-gray-100 px-5 py-4">
+            {adding ? (
+              <AddFieldForm
+                // Remounts on a different row so the form never carries a
+                // previous document's input or result message over.
+                key={selected.id}
+                collection={collection}
+                scope="document"
+                docId={selected.id}
+                onDone={() => setAdding(false)}
+              />
+            ) : (
+              <button
+                onClick={() => setAdding(true)}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                + 필드 추가
+              </button>
+            )}
+          </div>
         </aside>
       )}
       </div>
