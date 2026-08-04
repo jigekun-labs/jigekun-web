@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { CellValue, Row } from "@/lib/firestore-view";
-import AddFieldForm from "./AddFieldForm";
+import DocumentPanel from "./DocumentPanel";
 
 /**
  * Every value in a document, flattened to one lowercase string.
@@ -137,7 +137,6 @@ export default function DataTable({
   // The id rather than the row itself: after a write the server sends fresh
   // rows, and holding the old object would leave the panel showing stale JSON.
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState(initialFilter);
   const [sort, setSort] = useState<{ field: string; dir: SortDir } | null>(null);
 
@@ -283,10 +282,7 @@ export default function DataTable({
             {visible.map((row) => (
               <tr
                 key={row.id}
-                onClick={() => {
-                  setSelectedId(row.id);
-                  setAdding(false);
-                }}
+                onClick={() => setSelectedId(row.id)}
                 className={`cursor-pointer border-b border-gray-100 transition hover:bg-blue-50/50 ${
                   selected?.id === row.id ? "bg-blue-50" : "bg-white"
                 }`}
@@ -306,48 +302,15 @@ export default function DataTable({
       </div>
 
       {selected && (
-        <aside className="w-[420px] shrink-0 overflow-auto border-l border-gray-200 bg-white">
-          <div className="sticky top-0 flex items-start justify-between gap-3 border-b border-gray-100 bg-white px-5 py-4">
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                Document
-              </p>
-              <p className="truncate font-mono text-sm text-gray-900">
-                {selected.id}
-              </p>
-            </div>
-            <button
-              onClick={() => setSelectedId(null)}
-              className="shrink-0 text-sm text-gray-400 hover:text-gray-700"
-            >
-              닫기
-            </button>
-          </div>
-          <pre className="whitespace-pre-wrap break-all px-5 py-4 font-mono text-[12px] leading-relaxed text-gray-700">
-            {selected.json}
-          </pre>
-
-          <div className="border-t border-gray-100 px-5 py-4">
-            {adding ? (
-              <AddFieldForm
-                // Remounts on a different row so the form never carries a
-                // previous document's input or result message over.
-                key={selected.id}
-                collection={collection}
-                scope="document"
-                docId={selected.id}
-                onDone={() => setAdding(false)}
-              />
-            ) : (
-              <button
-                onClick={() => setAdding(true)}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                + 필드 추가
-              </button>
-            )}
-          </div>
-        </aside>
+        <DocumentPanel
+          // Remounts on a different row, so an editor left open on one document
+          // never carries over to the next.
+          key={selected.id}
+          collection={collection}
+          columns={columns}
+          row={selected}
+          onClose={() => setSelectedId(null)}
+        />
       )}
       </div>
     </div>

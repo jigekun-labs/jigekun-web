@@ -1,7 +1,14 @@
 import "server-only";
 
-import { FieldPath, Timestamp } from "firebase-admin/firestore";
+import {
+  DocumentReference,
+  FieldPath,
+  FieldValue,
+  GeoPoint,
+  Timestamp,
+} from "firebase-admin/firestore";
 import { adminDb } from "./firebase-admin";
+import { jsonReplacer } from "./firestore-view";
 import type { FieldType } from "./field-types";
 
 /** Firestore caps a batch at 500 writes; leave headroom. */
@@ -105,6 +112,157 @@ export async function addFieldToDocument(
         `이 문서에는 이미 '${field}' 필드가 있습니다. 기존 값은 덮어쓰지 않습니다.`
       );
     }
+    tx.update(ref, path, value);
+  });
+}
+
+/**
+ * Creates a document, stamping `createdAt` server-side.
+ *
+ * Every collection the dashboard can author into orders by `createdAt`, and a
+ * server timestamp is the only value that stays correct regardless of the
+ * admin's clock.
+ */
+export async function createDocument(
+  collection: string,
+  values: Record<string, unknown>
+): Promise<string> {
+  const ref = await adminDb()
+    .collection(collection)
+    .add({ ...values, createdAt: FieldValue.serverTimestamp() });
+  return ref.id;
+}
+
+/** Server-side timestamp sentinel, for callers outside this module. */
+export function serverNow() {
+  return FieldValue.serverTimestamp();
+}
+
+/** Highest `order` in a collection, plus one. Used when faqs.order is blank. */
+export async function nextOrder(collection: string): Promise<number> {
+  const snap = await adminDb()
+    .collection(collection)
+    .orderBy("order", "desc")
+    .limit(1)
+    .get();
+
+  if (snap.empty) return 1;
+  const top = snap.docs[0].get("order");
+  return typeof top === "number" ? top + 1 : 1;
+}
+
+/**
+ * Publishes an announcement by flipping `isActive` to true.
+ *
+ * The dashboard sends nothing itself: the app's `onAnnouncementPublished`
+ * Cloud Function watches this collection, and this write is what wakes it. It
+ * then claims the document, stamps `notified`, and fans out the in-app rows and
+ * pushes. Sending from here as well would notify every user twice.
+ */
+export async function publishAnnouncement(
+  id: string,
+  /**
+   * Publish without notifying: stamps `notified` in the same write, which the
+   * trigger checks before fanning out, so the notice appears in the app but no
+   * push goes out.
+   */
+  silent = false
+): Promise<void> {
+  const db = adminDb();
+  const ref = db.collection("announcements").doc(id);
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) throw new Error("공지를 찾을 수 없습니다.");
+    if (snap.get("isActive") === true) {
+      throw new Error("이미 게시된 공지입니다.");
+    }
+    tx.update(
+      ref,
+      silent
+        ? { isActive: true, notified: true, notifiedAt: FieldValue.serverTimestamp() }
+        : { isActive: true }
+    );
+  });
+}
+
+/**
+ * True when two Firestore values are the same as far as this dashboard cares.
+ *
+ * Timestamps compare at millisecond precision on purpose: the browser only ever
+ * sees an ISO string, so nanoseconds written by `serverTimestamp()` cannot
+ * survive the round trip and comparing them exactly would report a conflict on
+ * every unchanged server-written date.
+ */
+function sameValue(a: unknown, b: unknown): boolean {
+  if (a instanceof Timestamp || b instanceof Timestamp) {
+    return (
+      a instanceof Timestamp &&
+      b instanceof Timestamp &&
+      a.toMillis() === b.toMillis()
+    );
+  }
+  if (a === null || b === null) return a === b;
+  if (typeof a !== "object" || typeof b !== "object") return a === b;
+  return JSON.stringify(a, jsonReplacer) === JSON.stringify(b, jsonReplacer);
+}
+
+/** One-line rendering of a value, for "someone changed this to X" messages. */
+function describe(value: unknown): string {
+  if (value === null) return "null";
+  if (value instanceof Timestamp) return value.toDate().toISOString();
+  const text =
+    typeof value === "object"
+      ? JSON.stringify(value, jsonReplacer)
+      : String(value);
+  return text.length > 60 ? `${text.slice(0, 59)}…` : text;
+}
+
+/**
+ * Replaces the value of one existing field on one document.
+ *
+ * `expected` is the value the admin was looking at when they hit edit. The
+ * write only lands if the stored value still matches it, so an edit made
+ * against a stale table cannot silently overwrite something the app wrote in
+ * the meantime. The check is per-field rather than per-document: these
+ * collections are written by the live app constantly, and rejecting an edit
+ * because some unrelated field moved would make the feature unusable.
+ */
+export async function updateFieldInDocument(
+  collection: string,
+  docId: string,
+  field: string,
+  value: unknown,
+  expected: unknown
+): Promise<void> {
+  const db = adminDb();
+  const ref = db.collection(collection).doc(docId);
+  const path = new FieldPath(field);
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) {
+      throw new Error(`문서를 찾을 수 없습니다: ${docId}`);
+    }
+
+    const current = snap.get(path);
+    if (current === undefined) {
+      throw new Error(
+        `'${field}' 필드가 더 이상 존재하지 않습니다. 새로고침 후 다시 시도해주세요.`
+      );
+    }
+    if (current instanceof GeoPoint || current instanceof DocumentReference) {
+      throw new Error(
+        "GeoPoint와 Reference 타입은 대시보드에서 편집할 수 없습니다."
+      );
+    }
+    if (!sameValue(current, expected)) {
+      throw new Error(
+        `이 필드의 값이 그 사이에 바뀌었습니다 (현재: ${describe(current)}). ` +
+          `덮어쓰지 않았습니다 — 새로고침 후 다시 확인해주세요.`
+      );
+    }
+
     tx.update(ref, path, value);
   });
 }

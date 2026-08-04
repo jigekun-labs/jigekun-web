@@ -155,8 +155,13 @@ function toCell(value: unknown): CellValue {
   };
 }
 
-/** Makes Firestore's own types survive JSON.stringify inside nested values. */
-function jsonReplacer(_key: string, value: unknown) {
+/**
+ * Makes Firestore's own types survive JSON.stringify inside nested values.
+ *
+ * Relies on none of these classes defining `toJSON` — stringify would call that
+ * first and the replacer would only ever see a plain object.
+ */
+export function jsonReplacer(_key: string, value: unknown) {
   if (value instanceof Timestamp) return value.toDate().toISOString();
   if (value instanceof GeoPoint) return `${value.latitude}, ${value.longitude}`;
   if (value instanceof DocumentReference) return value.path;

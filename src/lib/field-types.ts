@@ -7,6 +7,8 @@
  * server re-runs the same check as the authoritative one.
  */
 
+import type { CellValue } from "./firestore-view";
+
 export type FieldType =
   | "string"
   | "number"
@@ -15,14 +17,46 @@ export type FieldType =
   | "null"
   | "json";
 
+/**
+ * Labels stay in Firestore's own vocabulary — `string`, `timestamp`, `map` —
+ * because that is what the console and the app's code call them. The Korean
+ * hint underneath carries the explanation instead.
+ */
 export const FIELD_TYPES: { value: FieldType; label: string; hint: string }[] = [
-  { value: "string", label: "문자열", hint: "예: pending" },
-  { value: "number", label: "숫자", hint: "예: 0" },
-  { value: "boolean", label: "참/거짓", hint: "true 또는 false" },
-  { value: "timestamp", label: "날짜/시간", hint: "Firestore Timestamp로 저장" },
-  { value: "null", label: "비어 있음 (null)", hint: "값 없이 필드만 만듭니다" },
-  { value: "json", label: "JSON (map / 배열)", hint: '예: {"ko":"","ja":""}' },
+  { value: "string", label: "string", hint: "문자열 · 예: pending" },
+  { value: "number", label: "number", hint: "숫자 · 예: 0" },
+  { value: "boolean", label: "boolean", hint: "true 또는 false" },
+  { value: "timestamp", label: "timestamp", hint: "날짜/시간 · Timestamp로 저장" },
+  { value: "null", label: "null", hint: "값 없이 필드만 만듭니다" },
+  { value: "json", label: "map / array", hint: '예: {"ko":"","ja":""}' },
 ];
+
+/**
+ * A table cell turned back into the form's (type, text) pair — used both to
+ * prefill the editor and to tell the server what value the admin was looking
+ * at, so a stale edit can be refused instead of overwriting.
+ */
+export function cellToInput(cell: CellValue | undefined): {
+  type: FieldType;
+  text: string;
+} {
+  if (!cell) return { type: "string", text: "" };
+
+  switch (cell.kind) {
+    case "null":
+      return { type: "null", text: "" };
+    case "string":
+      return { type: "string", text: cell.value };
+    case "number":
+      return { type: "number", text: String(cell.value) };
+    case "bool":
+      return { type: "boolean", text: String(cell.value) };
+    case "date":
+      return { type: "timestamp", text: cell.value };
+    case "json":
+      return { type: "json", text: cell.value };
+  }
+}
 
 /** Reserved by Firestore itself — `__name__` and friends. */
 const RESERVED = /^__.*__$/;

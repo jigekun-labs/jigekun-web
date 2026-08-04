@@ -4,9 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { addFieldAction, type AddFieldState } from "@/app/admin/field-actions";
 import { FIELD_TYPES, validateFieldName, type FieldType } from "@/lib/field-types";
-
-const INPUT =
-  "w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-gray-900";
+import FieldValueInput, { INPUT } from "./FieldValueInput";
 
 /**
  * The field editor, shared by both places a field can be created: the detail
@@ -39,6 +37,7 @@ export default function AddFieldForm({
 
   const [name, setName] = useState("");
   const [type, setType] = useState<FieldType>("string");
+  const [value, setValue] = useState("");
   // Only surfaced once the admin has typed something, so the form does not open
   // already complaining.
   const nameError = name ? validateFieldName(name) : null;
@@ -91,7 +90,12 @@ export default function AddFieldForm({
         <select
           name="type"
           value={type}
-          onChange={(e) => setType(e.target.value as FieldType)}
+          onChange={(e) => {
+            const next = e.target.value as FieldType;
+            setType(next);
+            // Start each control from something valid for its own type.
+            setValue(next === "boolean" ? "false" : next === "json" ? "{}" : "");
+          }}
           className={INPUT}
         >
           {FIELD_TYPES.map((t) => (
@@ -107,7 +111,7 @@ export default function AddFieldForm({
           <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
             {scope === "collection" ? "기본값" : "값"}
           </label>
-          <ValueInput type={type} />
+          <FieldValueInput type={type} value={value} onChange={setValue} />
           <p className="mt-1 text-xs text-gray-400">{hint}</p>
         </div>
       )}
@@ -152,48 +156,4 @@ export default function AddFieldForm({
       </div>
     </form>
   );
-}
-
-/** One control per type — all named `value`, and only one is ever mounted. */
-function ValueInput({ type }: { type: FieldType }) {
-  switch (type) {
-    case "boolean":
-      return (
-        <select name="value" defaultValue="false" className={INPUT}>
-          <option value="false">false</option>
-          <option value="true">true</option>
-        </select>
-      );
-    case "number":
-      return (
-        <input
-          name="value"
-          type="number"
-          step="any"
-          defaultValue="0"
-          className={`${INPUT} tabular-nums`}
-        />
-      );
-    case "timestamp":
-      return <input name="value" type="datetime-local" className={INPUT} />;
-    case "json":
-      return (
-        <textarea
-          name="value"
-          rows={4}
-          defaultValue="{}"
-          spellCheck={false}
-          className={`${INPUT} font-mono text-[12px]`}
-        />
-      );
-    default:
-      return (
-        <input
-          name="value"
-          defaultValue=""
-          autoComplete="off"
-          className={INPUT}
-        />
-      );
-  }
 }

@@ -11,7 +11,9 @@ import {
 } from "@/lib/firestore-view";
 import DataTable from "@/components/admin/DataTable";
 import AddFieldButton from "@/components/admin/AddFieldButton";
+import CreateDocumentButton from "@/components/admin/CreateDocumentButton";
 import LoadError from "@/components/admin/LoadError";
+import { schemaFor } from "@/lib/collection-schemas";
 
 export default async function CollectionPage({
   params,
@@ -27,6 +29,9 @@ export default async function CollectionPage({
 
   const { collection } = await params;
   const { cursor, filter } = await searchParams;
+
+  // Only collections whose shape is declared can be authored into.
+  const schema = schemaFor(collection);
 
   let complete: boolean;
   let page: Page;
@@ -70,7 +75,12 @@ export default async function CollectionPage({
             </span>
           </p>
         </div>
-        <AddFieldButton collection={collection} docCount={total} />
+        <div className="flex shrink-0 items-center gap-2">
+          <AddFieldButton collection={collection} docCount={total} />
+          {schema && (
+            <CreateDocumentButton collection={collection} schema={schema} />
+          )}
+        </div>
       </header>
 
       <div className="min-h-0 flex-1 overflow-hidden">
