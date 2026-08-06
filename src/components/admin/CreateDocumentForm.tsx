@@ -7,7 +7,9 @@ import {
   type CreateDocState,
 } from "@/app/admin/document-actions";
 import type { CollectionSchema } from "@/lib/collection-schemas";
+import type { Block } from "@/lib/announcement-blocks";
 import FieldValueInput from "./FieldValueInput";
+import BlockEditor from "./BlockEditor";
 
 /**
  * Typed create form, driven by the collection's schema.
@@ -35,6 +37,9 @@ export default function CreateDocumentForm({
     Object.fromEntries(schema.fields.map((f) => [f.name, f.initial ?? ""]))
   );
   const [silent, setSilent] = useState(false);
+  // Block bodies live as structure, not text, so they are held apart from the
+  // string-keyed `values` map above.
+  const [blocks, setBlocks] = useState<Block[]>([]);
 
   useEffect(() => {
     if (!state.ok) return;
@@ -73,13 +78,21 @@ export default function CreateDocumentForm({
             {field.required && <span className="text-red-400">*</span>}
           </label>
 
-          <FieldValueInput
-            type={field.type}
-            value={values[field.name] ?? ""}
-            onChange={(next) => set(field.name, next)}
-            multiline={field.multiline}
-            name={`f_${field.name}`}
-          />
+          {field.control === "blocks" ? (
+            <BlockEditor
+              name={`f_${field.name}`}
+              blocks={blocks}
+              onChange={setBlocks}
+            />
+          ) : (
+            <FieldValueInput
+              type={field.type}
+              value={values[field.name] ?? ""}
+              onChange={(next) => set(field.name, next)}
+              multiline={field.multiline}
+              name={`f_${field.name}`}
+            />
+          )}
 
           {field.help && (
             <p className="mt-1 text-xs leading-relaxed text-gray-400">

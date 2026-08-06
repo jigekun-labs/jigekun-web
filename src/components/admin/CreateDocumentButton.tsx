@@ -14,6 +14,11 @@ export default function CreateDocumentButton({
 }) {
   const [open, setOpen] = useState(false);
 
+  // A block body is a layout being assembled, so it needs width to read the
+  // order at a glance. A plain form (faqs) stays narrow — a wide modal for four
+  // short fields just spreads them out.
+  const wide = schema.fields.some((f) => f.control === "blocks");
+
   return (
     <>
       <button
@@ -30,7 +35,9 @@ export default function CreateDocumentButton({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl"
+            className={`w-full rounded-xl bg-white p-5 shadow-xl ${
+              wide ? "max-w-3xl" : "max-w-lg"
+            }`}
           >
             <div className="mb-4">
               <h2 className="text-base font-bold text-gray-900">

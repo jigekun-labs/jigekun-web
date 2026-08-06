@@ -28,6 +28,8 @@ export type FieldSpec = {
   autoWhenBlank?: boolean;
   /** Shown in red — ticking this has consequences outside the dashboard. */
   danger?: string;
+  /** Swaps the plain input for a purpose-built editor. */
+  control?: "blocks";
 };
 
 export type CollectionSchema = {
@@ -61,12 +63,22 @@ export const COLLECTION_SCHEMAS: Record<string, CollectionSchema> = {
     fields: [
       { name: "title", label: "제목", type: "string", required: true },
       {
-        name: "content",
-        label: "내용",
+        name: "summary",
+        label: "요약",
         type: "string",
+        help:
+          "푸시 알림에 표시될 한 줄입니다. 비워두면 본문 앞부분이 대신 쓰입니다. " +
+          "(앱의 Cloud Function에 한 줄 수정이 필요합니다.)",
+      },
+      {
+        name: "blocks",
+        label: "내용",
+        type: "json",
+        control: "blocks",
         required: true,
-        multiline: true,
-        help: "푸시 알림에는 앞부분 120자만 표시되고, 전체 내용은 앱 상세 화면에 나옵니다.",
+        help:
+          "블록을 쌓은 순서가 그대로 앱 화면의 순서입니다. ⠿ 를 끌거나 ↑↓ 로 " +
+          "순서를 바꿀 수 있습니다.",
       },
       {
         name: "isImportant",

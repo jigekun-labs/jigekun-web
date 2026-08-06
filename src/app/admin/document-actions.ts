@@ -11,6 +11,7 @@ import {
   serverNow,
 } from "@/lib/firestore-write";
 import { schemaFor } from "@/lib/collection-schemas";
+import { blocksToPlainText, validateBlocks } from "@/lib/announcement-blocks";
 
 export type CreateDocState = { ok?: string; error?: string; id?: string };
 
@@ -54,6 +55,21 @@ export async function createDocumentAction(
 
     const parsed = parseFieldValue(field.type, raw);
     if (!parsed.ok) return { error: `${field.label}: ${parsed.error}` };
+
+    if (field.control === "blocks") {
+      // The editor is a convenience, not a guarantee — re-check the structure
+      // and keep only declared keys.
+      const checked = validateBlocks(parsed.value);
+      if (!checked.ok) return { error: checked.error };
+
+      values[field.name] = checked.blocks;
+
+      // Written alongside the blocks for the readers that cannot understand
+      // them: app builds older than the block renderer, the push body when a
+      // notice has no summary, and this dashboard's own substring filter.
+      values.content = blocksToPlainText(checked.blocks);
+      continue;
+    }
 
     values[field.name] = parsed.value;
   }
