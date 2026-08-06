@@ -17,10 +17,9 @@ const geist = Geist({
  */
 export const metadata: Metadata = {
   title: "지게꾼 Admin",
-  // Same logo as the public site. Without this, /admin falls back to the
-  // default src/app/favicon.ico (the Next.js/Vercel mark), since this tree has
-  // its own root layout separate from [locale].
-  icons: { icon: "/favicon.png", apple: "/icon.png" },
+  // Icons come from the `src/app/icon.png` / `apple-icon.png` file conventions,
+  // which cover this tree too despite it having its own root layout separate
+  // from [locale]. See the note in [locale]/layout.tsx before adding `icons`.
   robots: { index: false, follow: false, nocache: true },
 };
 

@@ -18,10 +18,10 @@ export const metadata: Metadata = {
   title: "지게꾼",
   description:
     "GGUN connects employers who need temporary workers with reliable people ready to work. Post jobs, get matched, and get paid — all in one app.",
-  icons: {
-    icon: "/favicon.png",
-    apple: "/icon.png",
-  },
+  // Icons come from the `src/app/icon.png` and `src/app/apple-icon.png` file
+  // conventions, which apply across both root layouts. Do not add an `icons`
+  // field here: config-based icons replace the generated block wholesale, so
+  // declaring even one key silently drops the rest.
 };
 
 export default async function LocaleLayout({
