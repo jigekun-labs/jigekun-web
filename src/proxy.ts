@@ -23,5 +23,5 @@ export default createMiddleware(routing);
  * server action.
  */
 export const config = {
-  matcher: ["/", "/(ko|en)/:path*"],
+  matcher: ["/", "/ko/:path*"],
 };

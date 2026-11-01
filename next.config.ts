@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
   // leaves it as a native Node dependency, resolved the way firebase-admin
   // expects, instead of being transformed by the bundler.
   serverExternalPackages: ["firebase-admin"],
+  // The site used to ship an English locale. Keep its old links working by
+  // sending them to the Korean page at the same path.
+  async redirects() {
+    return [
+      { source: "/en", destination: "/ko", permanent: true },
+      { source: "/en/:path*", destination: "/ko/:path*", permanent: true },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);

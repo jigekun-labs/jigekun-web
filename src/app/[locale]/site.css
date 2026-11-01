@@ -1,0 +1,363 @@
+/*
+ * Public site styles, ported from the 지게꾼 웹사이트 design (site.html).
+ *
+ * Loaded only by the [locale] root layout, so /admin never sees it. The
+ * element resets sit in `@layer base` alongside Tailwind's preflight: unlayered
+ * rules would beat every Tailwind utility, which the legal pages still use.
+ */
+:root{
+  /* 브랜드 — Figma「V9 · 01 디자인 가이드 & 컴포넌트」의미 토큰 (Light) */
+  --navy:#122260;        /* action/primary · text/navy · background/navy */
+  --navy-deep:#0b1640;   /* navy 눌림/푸터용 파생값 */
+  --ink:#171b2e;         /* text/primary */
+  --muted:#535d73;       /* text/secondary */
+  --faint:#8a92a6;
+  --line:#e1e6ef;        /* border/default */
+  --canvas:#f4f6fb;      /* background/paper */
+  --surface:#fcfdff;     /* background/surface */
+
+  /* 요청자 = 블루 (accent) */
+  --req:#2c5bde;         /* accent · --jg-blue */
+  --req-strong:#1f47b8;
+  --req-soft:#eaf0ff;    /* background/tint */
+  --req-tint:#d6e1ff;
+
+  /* 작업자 = 네이비 (action/primary · --jg-navy) */
+  --wrk:#122260;
+  --wrk-strong:#0b1640;
+  --wrk-soft:#eef0f7;
+  --wrk-tint:#d9deec;
+
+  /* 모서리 — 가이드 xs 6 · sm 10 · md 14 · lg 18 · xl 24 */
+  --r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:18px;--r-xl:24px;
+
+  --max:1200px;
+  --gutter:clamp(16px,4vw,40px);
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+@layer base{
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  img{display:block;max-width:100%;height:auto}
+  a{color:inherit;text-decoration:none}
+}
+/* Unlayered on purpose: it has to win over the shared `body` rule in globals.css. */
+body{
+  font-family:var(--font-noto-sans-kr),"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color:var(--ink);background:var(--surface);
+  font-size:17px;line-height:1.6;letter-spacing:-.01em;
+  word-break:keep-all;overflow-wrap:break-word;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gutter)}
+/* 가이드: 누를 때 0.975 배율, 140ms ease-out */
+.nav-cta:active,.role:active,.store-btn:active{transform:scale(.975);transition:transform 140ms ease-out}
+:focus-visible{outline:3px solid var(--req);outline-offset:3px;border-radius:8px}
+
+/* ---------- 헤더 ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(255,255,255,.86);backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px);transition:box-shadow .3s,background .35s var(--ease)}
+/* 인트로 사진 위에서는 투명 헤더 + 흰 글씨 */
+/* 밝은 창가 사진 위에서도 읽히도록: 위쪽 어두운 그라디언트 + 메뉴는 반투명 알약 배경 */
+.nav.over{background:linear-gradient(180deg,rgba(8,14,40,.55) 0%,rgba(8,14,40,.22) 65%,rgba(8,14,40,0) 100%);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+.nav.over .brand,.nav.over .nav-links a{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.nav.over .nav-links a{background:rgba(8,14,40,.28);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);margin-left:6px}
+.nav.over .nav-links a:hover{background:rgba(8,14,40,.42)}
+.nav.over .dot{box-shadow:0 0 0 1.5px #fff}
+.nav.over .nav-cta{background:#fff;color:var(--navy)}
+.nav.over.scrolled{box-shadow:none}
+.nav.scrolled{box-shadow:0 1px 0 var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:20px;height:68px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;letter-spacing:-.04em;color:var(--navy)}
+.brand img{width:32px;height:32px;border-radius:9px}
+.nav-links{display:flex;gap:2px;margin-left:auto}
+.nav-links a{padding:10px 14px;border-radius:var(--r-sm);font-size:15px;font-weight:600;color:var(--muted);transition:color .2s,background .2s}
+.nav-links a:hover{color:var(--ink);background:var(--canvas)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.nav-cta{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:var(--r-md);background:var(--navy);color:#fff;font-weight:700;font-size:15px;transition:transform .2s var(--ease),background .2s}
+.nav-cta:hover{transform:translateY(-1px);background:var(--navy-deep)}
+
+/* ---------- 3D 아이폰 ---------- */
+.stage{perspective:1800px;perspective-origin:50% 40%}
+/* iPhone 16 Pro 비율 (본체 71.5 × 149.6mm, 화면 402 × 874pt, 두께 8.25mm)
+   앞면: 브러시드 티타늄 밴드 + 검은 유리 베젤 + 화면
+   옆면: 같은 모양의 금속 판을 Z축으로 겹쳐 실제 두께를 만듦 (.ip-slab, 스크립트가 추가) */
+.iphone{
+  --w:300px;
+  --rim:calc(var(--w)*.011);              /* 앞에서 보이는 금속 밴드 */
+  --glass:calc(var(--w)*.024);            /* 검은 유리 베젤 */
+  --inset:calc(var(--rim) + var(--glass));
+  --R:calc(var(--w)*.152);                /* 본체 모서리 */
+  --depth:calc(var(--w)*.115);            /* 본체 두께 */
+  --drop:rgba(18,34,96,.40);
+  --ti:conic-gradient(from 210deg at 50% 50%,#7e858e,#d9dde1 9%,#f7f8f9 14%,#a3aab2 22%,#6f767f 30%,#c6cbd0 40%,#f2f4f5 46%,#9097a0 55%,#777e87 63%,#d3d7dc 73%,#fbfbfc 78%,#9ea5ad 86%,#7e858e);
+  --brush:repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 1px,rgba(0,0,0,.07) 1px 2px,rgba(255,255,255,0) 2px 3px);
+  width:var(--w);aspect-ratio:71.5/149.6;position:relative;
+  border-radius:var(--R);
+  border:var(--rim) solid transparent;
+  padding:var(--glass);
+  background:
+    linear-gradient(160deg,#1b1d24 0%,#07080b 45%,#121318 100%) padding-box,
+    var(--brush) border-box,
+    var(--ti) border-box;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 0 calc(var(--w)*.02) rgba(0,0,0,.6);
+  transform-style:preserve-3d;
+  transform:rotateY(var(--ry,-16deg)) rotateX(var(--rx,6deg)) rotateZ(var(--rz,1deg));
+  transition:transform .8s var(--ease);
+}
+/* 옆면 금속 판 */
+.ip-slab{position:absolute;inset:calc(var(--rim) * -1);border-radius:var(--R);transform-style:preserve-3d;pointer-events:none}
+.ip-slab i{position:absolute;inset:0;border-radius:var(--R);background:var(--brush),var(--ti);
+  transform:translateZ(calc(var(--depth) * var(--k) * -1))}
+.ip-slab i:last-child{background:linear-gradient(160deg,#c9ced3,#8a919a);box-shadow:-34px 56px 90px -30px var(--drop),-10px 22px 34px -12px var(--drop)}
+.iphone.flip .ip-slab i:last-child{box-shadow:34px 56px 90px -30px var(--drop),10px 22px 34px -12px var(--drop)}
+/* 측면 버튼: 두께 가운데에 붙어 있음 */
+.ip-btn{position:absolute;width:calc(var(--rim) * 1.6);border-radius:2px;background:linear-gradient(90deg,#6d747d,#eef0f2 50%,#7f868f);transform:translateZ(calc(var(--depth) * -.5))}
+.ip-btn.l1{left:calc(var(--rim) * -2.2);top:18%;height:5%}
+.ip-btn.l2{left:calc(var(--rim) * -2.2);top:25.5%;height:9%}
+.ip-btn.l3{left:calc(var(--rim) * -2.2);top:36.5%;height:9%}
+.ip-btn.r1{right:calc(var(--rim) * -2.2);top:30%;height:14%}
+.ip-btn.r2{right:calc(var(--rim) * -2.2);top:56%;height:9%}
+.iphone .scr{width:100%;height:100%;border-radius:calc((var(--w) - var(--inset) * 2) * .1244);overflow:hidden;background:var(--canvas);position:relative;transform:translateZ(.5px)}
+.iphone .scr img{width:100%;height:100%;object-fit:cover;object-position:top}
+/* 유리 반사광 */
+.iphone .scr::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:linear-gradient(118deg,rgba(255,255,255,.26) 0%,rgba(255,255,255,.05) 20%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 74%,rgba(255,255,255,.07) 100%)}
+.iphone.flip{--ry:16deg;--rz:-1deg}
+.tilt:hover .iphone{--ry:-8deg;--rx:3deg}
+.tilt:hover .iphone.flip{--ry:8deg}
+
+/* ---------- 히어로 ---------- */
+.hero{position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:24px;min-height:min(calc(100svh - 68px),860px);padding-top:48px;padding-bottom:64px}
+.mark-bg{position:absolute;right:-6vw;top:50%;transform:translateY(-50%);width:min(52vw,700px);opacity:.035;pointer-events:none}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--navy)}
+.eyebrow::before{content:"";width:28px;height:2px;background:var(--navy)}
+.hero h1{font-size:clamp(44px,6.8vw,88px);line-height:1.1;letter-spacing:-.05em;font-weight:800;color:var(--navy);margin:24px 0}
+.hero h1 .hl{position:relative;white-space:nowrap}
+.hero h1 .hl::after{content:"";position:absolute;left:-2%;right:-2%;bottom:.08em;height:.26em;background:var(--req-tint);z-index:-1;border-radius:4px}
+.lead{font-size:clamp(17px,1.5vw,20px);color:var(--muted);max-width:28em}
+.roles{display:flex;flex-wrap:wrap;gap:10px;margin-top:36px}
+.role{display:inline-flex;align-items:center;gap:12px;min-height:56px;padding:0 22px 0 18px;border-radius:var(--r-md);font-weight:700;font-size:17px;color:#fff;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.role:hover{transform:translateY(-2px)}
+.role small{font-weight:600;font-size:13px;opacity:.8;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,.16)}
+.role--req{background:var(--req);box-shadow:0 12px 26px -14px var(--req)}
+.role--wrk{background:var(--wrk);box-shadow:0 12px 26px -14px var(--wrk)}
+.stores{display:flex;flex-wrap:wrap;gap:16px;margin-top:22px;font-size:14px;font-weight:600;color:var(--muted)}
+.stores a{display:inline-flex;align-items:center;gap:8px;min-height:44px;transition:color .2s}
+.stores a:hover{color:var(--ink)}
+.stores svg{width:18px;height:18px}
+/* 두 대를 겹치지 않게 나란히 */
+.duo{display:flex;justify-content:center;align-items:flex-start;gap:clamp(14px,2.4vw,36px);perspective:1800px;perspective-origin:50% 40%}
+.duo .iphone{--w:min(19vw,250px)}
+.duo .iphone:nth-of-type(2){margin-top:56px}
+.hero-phones{padding:24px 0}
+
+/* ---------- 인트로 (박스가 쌓인 사무실 → 손 안의 화면에서 호출 → 카드 → 히어로) ---------- */
+.ix-track{height:700vh;position:relative}
+.ix-stage{position:sticky;top:0;height:100vh;overflow:hidden}
+.ix-bg{position:absolute;inset:0;overflow:hidden;background:#d9dde3;
+  clip-path:inset(var(--ct,0px) var(--cs,0px) var(--cb,0px) var(--cs,0px) round var(--cr,0px))}
+.ix-shot{position:absolute;left:0;top:0;width:1376px;height:768px;transform-origin:0 0;will-change:transform,opacity}
+.ix-photo{width:1376px;height:768px;max-width:none}
+/* 손 안의 화면: 마스크로 손가락은 앞에 남기고, 원근 변환(matrix3d)으로 화면 모서리에 맞춤 */
+.ix-inhand{position:absolute;inset:0;-webkit-mask:url(/assets/office-close-screen-mask.png) 0 0/1376px 768px no-repeat;mask:url(/assets/office-close-screen-mask.png) 0 0/1376px 768px no-repeat;opacity:0}
+.ix-screen{position:absolute;left:0;top:0;width:402px;height:874px;transform-origin:0 0;background:#fff;border-radius:50px;overflow:hidden}
+.ix-screen img{position:absolute;inset:0;width:402px;height:874px;max-width:none;opacity:0;z-index:1;transition:opacity 0s .6s}
+.ix-screen img.on{opacity:1;z-index:2;transition:opacity .6s cubic-bezier(.4,0,.2,1)}
+.ix-inhand::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.10),rgba(255,255,255,0) 35%)}
+.ix-shade-b{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,14,40,0) 45%,rgba(8,14,40,.55) 100%);opacity:var(--sb,1)}
+.ix-shade-l{position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,14,40,.66) 0%,rgba(8,14,40,.3) 38%,rgba(8,14,40,0) 62%);opacity:var(--sl,0)}
+.ix-words{position:absolute;left:0;right:0;bottom:7vh;display:flex;justify-content:space-between;padding:0 max(24px,5vw);color:#fff;font-weight:800;font-size:clamp(28px,4.4vw,64px);letter-spacing:-.045em;text-shadow:0 4px 30px rgba(0,0,0,.3)}
+.ix-words span{opacity:0}
+.ix-copy1{position:absolute;left:max(24px,10vw);top:50%;transform:translateY(-50%);color:#fff;opacity:0;max-width:26em}
+.ix-copy1 h2{font-size:clamp(30px,3.6vw,52px);line-height:1.2;font-weight:800;letter-spacing:-.045em}
+.ix-copy1 p{margin-top:16px;font-size:clamp(15px,1.2vw,18px);line-height:1.7;color:rgba(255,255,255,.86)}
+.ix-hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);color:rgba(255,255,255,.85);font-size:13px;font-weight:500}
+/* 마지막 장면 = 히어로 */
+.ix-hero{position:absolute;left:max(var(--gutter),calc((100vw - var(--max)) / 2 + var(--gutter)));top:50%;width:min(560px,46vw);opacity:0;overflow:visible;pointer-events:none}
+.ix-hero.live{pointer-events:auto}
+.ix-hero h1{font-size:clamp(44px,6vw,84px)}
+/* 손에서 빠져나오는 3D 아이폰 (매 프레임 스크립트가 위치·각도를 정함) */
+.ix-phone{position:absolute;left:0;top:0;perspective:1800px;perspective-origin:50% 40%;opacity:0;z-index:5;will-change:transform}
+.ix-phone .iphone{transition:none;--drop:rgba(10,18,50,.4)}
+.ix-phone .scr img{position:absolute;inset:0;opacity:0;z-index:1;transition:opacity 0s .6s}
+.ix-phone .scr img.on{opacity:1;z-index:2;transition:opacity .6s cubic-bezier(.4,0,.2,1)}
+@media (max-width:860px){
+  .ix-words{flex-direction:column;gap:6px;bottom:12vh}
+  .ix-copy1{left:32px;right:32px;top:auto;bottom:7vh;transform:none}
+  .ix-copy1 h2{font-size:30px}
+  .ix-copy1 p br{display:none}
+  .ix-shade-l{background:linear-gradient(0deg,rgba(8,14,40,.78) 0%,rgba(8,14,40,.4) 22%,rgba(8,14,40,0) 40%)}
+  .ix-hero{left:var(--gutter);right:var(--gutter);width:auto;top:96px}
+  .ix-hero h1{font-size:clamp(38px,11vw,52px);margin:16px 0}
+}
+@media (prefers-reduced-motion:reduce){.ix-screen img,.ix-phone .scr img{transition:none}}
+
+/* ---------- 오른쪽 섹션 표시(롤링 인디케이터) ---------- */
+.rail{position:fixed;z-index:45;right:max(14px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:flex-end;
+  --tick:var(--ink);transition:color .3s var(--ease)}
+.rail.light{--tick:#fff}
+.rail button{all:unset;box-sizing:border-box;position:relative;display:flex;align-items:center;justify-content:flex-end;width:44px;height:22px;cursor:pointer}
+.rail button i{display:block;width:14px;height:2px;border-radius:2px;background:var(--tick);opacity:.22;transition:opacity .35s var(--ease),width .35s var(--ease),background .3s var(--ease)}
+.rail button:hover i{opacity:.55}
+.rail.light button i{opacity:.5;box-shadow:0 0 6px rgba(8,14,40,.45)}
+.rail.light button.on i{opacity:1}
+.rail button.on i{opacity:1;width:22px}
+.rail button span{position:absolute;right:34px;top:50%;transform:translate(6px,-50%);white-space:nowrap;font-size:13px;font-weight:600;
+  padding:5px 10px;border-radius:var(--r-sm);background:var(--navy);color:#fff;opacity:0;pointer-events:none;transition:opacity .2s var(--ease),transform .2s var(--ease)}
+.rail.light button span{background:#fff;color:var(--navy)}
+.rail button:hover span,.rail button:focus-visible span{opacity:1;transform:translate(0,-50%)}
+.rail button:focus-visible{outline:2px solid var(--req);outline-offset:2px;border-radius:var(--r-xs)}
+@media (max-width:860px){.rail{display:none}}
+@media (prefers-reduced-motion:reduce){.rail button i,.rail button span{transition:none}}
+
+/* ---------- 공통 ---------- */
+.sec{padding:clamp(96px,13vw,168px) 0}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:700;margin-bottom:18px}
+.kicker i{width:10px;height:10px;border-radius:50%}
+.h2{font-size:clamp(34px,5vw,62px);line-height:1.16;letter-spacing:-.045em;font-weight:800}
+.sub{font-size:clamp(17px,1.5vw,20px);color:var(--muted);margin-top:20px;max-width:30em}
+
+/* ---------- 브랜드 문장 ---------- */
+.manifesto{text-align:center;padding:clamp(88px,11vw,140px) 0;border-top:1px solid var(--line)}
+.manifesto p{font-size:clamp(28px,4.4vw,54px);line-height:1.3;letter-spacing:-.045em;font-weight:800;color:#c4c9d6;max-width:18em;margin:0 auto}
+.manifesto p b{color:var(--navy)}
+.manifesto p .r{color:var(--req)}
+.manifesto p .w{color:var(--wrk)}
+
+/* ---------- 역할 섹션 · 스크롤 연동 (토스 방식) ---------- */
+.h2 em{font-style:normal}
+.feat{--accent:var(--req);position:relative}
+.feat--req{--accent:var(--req);background:linear-gradient(180deg,var(--surface) 0%,var(--req-soft) 100%)}
+.feat--wrk{--accent:var(--wrk);background:linear-gradient(180deg,var(--surface) 0%,var(--wrk-soft) 100%)}
+.feat .kicker,.feat .h2 em{color:var(--accent)}
+.feat .kicker i{background:var(--accent)}
+.feat-track{height:calc(var(--n,4) * 70vh + 100vh)}
+.feat-sticky{position:sticky;top:68px;height:calc(100vh - 68px);display:flex;align-items:center;overflow:hidden}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,6vw,96px);align-items:center;width:100%}
+.feat--wrk .feat-stage{order:-1}
+.feat-copy{min-width:0}
+.feat .h2{font-size:clamp(34px,4.4vw,56px)}
+.feat-list{list-style:none;margin-top:36px;border-bottom:1px solid var(--line)}
+.feat-item{border-top:1px solid var(--line)}
+.feat-head{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:14px 0;cursor:pointer;font-size:19px;font-weight:700;letter-spacing:-.025em;color:#b3b9c6;transition:color .3s var(--ease)}
+.feat-head:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:var(--r-xs)}
+.feat-head .no{font-size:13px;font-weight:700;width:24px;height:24px;border-radius:var(--r-xs);display:grid;place-items:center;background:var(--line);color:#fff;transition:background .3s var(--ease)}
+.feat-item.is-on .feat-head{color:var(--ink)}
+.feat-item.is-on .feat-head .no{background:var(--accent)}
+.feat-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.feat-body>div{overflow:hidden}
+.feat-body p{font-size:16px;line-height:1.7;color:var(--muted);padding:0 0 20px 36px;max-width:30em}
+.feat-item.is-on .feat-body{grid-template-rows:1fr}
+.feat-stage{display:flex;flex-direction:column;align-items:center;gap:20px;perspective:1800px;perspective-origin:50% 40%}
+.feat-stage .iphone{--w:min(24vw,300px,calc((100vh - 220px) * .46))}
+/* 단계가 바뀌면 다음 화면이 이전 화면 위로 부드럽게 겹쳐 나타나요.
+   이전 화면은 다음 화면이 다 나타날 때까지 밑에 그대로 있다가 사라져서, 중간에 검은 화면이 비치지 않음 */
+.feat .scr .base{position:absolute;inset:0;opacity:0;z-index:1;transition:opacity 0s .7s}
+.feat .scr .base.is-on{opacity:1;z-index:2;transition:opacity .7s cubic-bezier(.4,0,.2,1)}
+.caption{text-align:center;font-size:13px;color:var(--faint)}
+.duo-cap{position:relative;padding-bottom:40px}
+
+/* ---------- 업무 카테고리 ---------- */
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2vw,24px);margin-top:56px}
+.cat figure{aspect-ratio:3/2;border-radius:var(--r-xl);background:var(--canvas);display:grid;place-items:center;padding:16px;overflow:hidden}
+.cat figure img{width:100%;height:100%;object-fit:contain;transition:transform .6s var(--ease)}
+.cat:hover figure img{transform:scale(1.05) translateY(-4px)}
+.cat h3{font-size:20px;font-weight:700;letter-spacing:-.025em;margin-top:16px}
+.cat p{font-size:15px;color:var(--muted)}
+
+/* ---------- 신뢰 ---------- */
+.trust{background:var(--navy);color:#fff;overflow:hidden;position:relative}
+.trust .wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,6vw,96px);align-items:center}
+.trust .h2{color:#fff}
+.trust .sub{color:#b9c4ea}
+.trust .kicker{color:#c9d4ff}
+.trust .kicker i{background:#c9d4ff}
+.trust-list{list-style:none;margin-top:44px;display:grid;gap:12px}
+.trust-list li{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:20px 22px;border-radius:var(--r-lg);background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.trust-list .ico{width:44px;height:44px;border-radius:var(--r-sm);display:grid;place-items:center;background:rgba(255,255,255,.1);color:#dfe6ff}
+.trust-list h3{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.trust-list p{font-size:15px;color:#b9c4ea;margin-top:2px}
+.trust .single{display:flex;justify-content:center;position:relative}
+.trust .single .iphone{--w:min(26vw,300px);--drop:rgba(0,0,0,.55)}
+.trust .glow{position:absolute;width:70%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(44,91,222,.55),transparent 65%);filter:blur(20px);top:10%}
+
+/* ---------- 다운로드 ---------- */
+.final{text-align:center}
+.final .mark{width:88px;height:88px;border-radius:var(--r-xl);margin:0 auto 32px;box-shadow:0 24px 50px -20px rgba(18,34,96,.6)}
+.final .h2{color:var(--navy)}
+.final .sub{margin-left:auto;margin-right:auto}
+.final .roles{justify-content:center}
+.store-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.store-btn{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 22px;border-radius:var(--r-md);background:var(--ink);color:#fff;font-weight:600;font-size:15px;transition:transform .2s var(--ease)}
+.store-btn:hover{transform:translateY(-2px)}
+.store-btn svg{width:20px;height:20px}
+
+/* ---------- 푸터 ---------- */
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:14px;padding:48px 0 40px;background:var(--canvas)}
+.foot{display:grid;grid-template-columns:1.4fr 1fr;gap:32px}
+.foot .brand{margin-bottom:16px}
+.foot address{font-style:normal;line-height:1.9}
+.foot address a{text-decoration:underline;text-underline-offset:3px}
+.foot-links{display:flex;flex-wrap:wrap;gap:4px 20px;align-content:start;justify-content:flex-end}
+.foot-links a{color:var(--ink);padding:8px 0;font-weight:500}
+.copy{margin-top:32px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--faint)}
+
+/* ---------- 모션 ---------- */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
+.rise .iphone{--rx:18deg;--ry:-28deg}
+.rise .iphone.flip{--ry:28deg}
+.rise.in .iphone{--rx:6deg;--ry:-16deg}
+.rise.in .iphone.flip{--ry:16deg}
+:root:not(.js) .rv{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .rv{opacity:1;transform:none;transition:none}
+  .iphone{transition:none}
+}
+
+/* ---------- 반응형 ---------- */
+@media (prefers-reduced-motion:reduce){
+  .feat .base,.feat-body,.feat-head{transition:none}
+}
+@media (max-width:960px){
+  /* 모바일도 스크롤로 단계 전환: 화면에 고정한 채 휴대폰(위) + 목록(아래)을 한 화면에 담음 */
+  .feat-track{height:calc(var(--n,4) * 60svh + 100svh)}
+  .feat-sticky{top:68px;height:calc(100svh - 68px);align-items:flex-start;padding-block:14px}
+  .feat-grid{grid-template-columns:1fr;gap:12px;align-items:start}
+  .feat-stage,.feat--wrk .feat-stage{order:-1;gap:0}
+  .feat-stage .iphone{--w:min(42vw,190px,calc((100svh - 68px - 390px) * .478))}
+  .feat-stage .caption{display:none}
+  .feat .kicker{margin-bottom:6px;font-size:13px}
+  .feat .h2{font-size:clamp(24px,6.6vw,30px)}
+  .feat-list{margin-top:10px}
+  .feat-head{min-height:44px;padding:8px 0;font-size:16px}
+  .feat-body p{font-size:14px;line-height:1.6;padding-bottom:12px}
+  .nav-links{display:none}
+  .nav-cta{margin-left:auto}
+  .hero .wrap{grid-template-columns:1fr;min-height:auto;padding-top:40px}
+  .hero-phones{padding:24px 0 12px;order:2}
+  .duo .iphone{--w:min(40vw,250px)}
+  .duo .iphone:nth-of-type(2){margin-top:40px}
+  .role-sec .wrap,.role-sec--wrk .wrap,.trust .wrap{grid-template-columns:1fr}
+  .role-sec--wrk .pair{order:0}
+  .pair{padding:16px 0 56px}
+  .trust .single .iphone{--w:min(60vw,280px)}
+  .cat-grid{grid-template-columns:repeat(2,1fr)}
+  .foot{grid-template-columns:1fr}
+  .foot-links{justify-content:flex-start}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  .mark-bg{width:120vw;right:-40vw;top:20%}
+  .roles{flex-direction:column}
+  .role{justify-content:space-between}
+  .duo{gap:12px}
+  .duo .iphone{--w:min(43vw,200px)}
+  .cat-grid{grid-template-columns:1fr 1fr}
+  .cat h3{font-size:17px}
+  .cat p{font-size:13px}
+  .store-btn{flex:1;justify-content:center}
+}
