@@ -8,7 +8,7 @@ import {
 } from "@/app/admin/document-actions";
 import type { CollectionSchema } from "@/lib/collection-schemas";
 import type { Block } from "@/lib/announcement-blocks";
-import FieldValueInput from "./FieldValueInput";
+import FieldValueInput, { INPUT } from "./FieldValueInput";
 import BlockEditor from "./BlockEditor";
 
 /**
@@ -36,6 +36,7 @@ export default function CreateDocumentForm({
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(schema.fields.map((f) => [f.name, f.initial ?? ""]))
   );
+  const [docId, setDocId] = useState("");
   const [silent, setSilent] = useState(false);
   // Block bodies live as structure, not text, so they are held apart from the
   // string-keyed `values` map above.
@@ -68,44 +69,85 @@ export default function CreateDocumentForm({
         </p>
       )}
 
-      {schema.fields.map((field) => (
-        <div key={field.name}>
+      {schema.docId && (
+        <div>
           <label className="mb-1 flex items-baseline gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-            {field.label}
+            {schema.docId.label}
             <span className="font-mono normal-case tracking-normal text-gray-300">
-              {field.name}
+              문서 ID
             </span>
-            {field.required && <span className="text-red-400">*</span>}
+            <span className="text-red-400">*</span>
           </label>
-
-          {field.control === "blocks" ? (
-            <BlockEditor
-              name={`f_${field.name}`}
-              blocks={blocks}
-              onChange={setBlocks}
-            />
-          ) : (
-            <FieldValueInput
-              type={field.type}
-              value={values[field.name] ?? ""}
-              onChange={(next) => set(field.name, next)}
-              multiline={field.multiline}
-              name={`f_${field.name}`}
-            />
-          )}
-
-          {field.help && (
-            <p className="mt-1 text-xs leading-relaxed text-gray-400">
-              {field.help}
-            </p>
-          )}
-          {field.danger && values[field.name] === "true" && !silent && (
-            <p className="mt-1 rounded-lg bg-red-50 px-2.5 py-2 text-xs leading-relaxed text-red-700">
-              {field.danger}
-            </p>
-          )}
+          <input
+            name="docId"
+            value={docId}
+            onChange={(e) => setDocId(e.target.value.toUpperCase())}
+            placeholder={schema.docId.placeholder}
+            autoComplete="off"
+            spellCheck={false}
+            className={`${INPUT} font-mono`}
+          />
+          <p className="mt-1 text-xs leading-relaxed text-gray-400">
+            {schema.docId.help}
+          </p>
         </div>
-      ))}
+      )}
+
+      {schema.fields
+        .filter(
+          (f) => !f.showWhen || values[f.showWhen.field] === f.showWhen.equals
+        )
+        .map((field) => (
+          <div key={field.name}>
+            <label className="mb-1 flex items-baseline gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              {field.label}
+              <span className="font-mono normal-case tracking-normal text-gray-300">
+                {field.name}
+              </span>
+              {field.required && <span className="text-red-400">*</span>}
+            </label>
+
+            {field.control === "blocks" ? (
+              <BlockEditor
+                name={`f_${field.name}`}
+                blocks={blocks}
+                onChange={setBlocks}
+              />
+            ) : field.options ? (
+              <select
+                name={`f_${field.name}`}
+                value={values[field.name] ?? ""}
+                onChange={(e) => set(field.name, e.target.value)}
+                className={INPUT}
+              >
+                {field.options.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <FieldValueInput
+                type={field.type}
+                value={values[field.name] ?? ""}
+                onChange={(next) => set(field.name, next)}
+                multiline={field.multiline}
+                name={`f_${field.name}`}
+              />
+            )}
+
+            {field.help && (
+              <p className="mt-1 text-xs leading-relaxed text-gray-400">
+                {field.help}
+              </p>
+            )}
+            {field.danger && values[field.name] === "true" && !silent && (
+              <p className="mt-1 rounded-lg bg-red-50 px-2.5 py-2 text-xs leading-relaxed text-red-700">
+                {field.danger}
+              </p>
+            )}
+          </div>
+        ))}
 
       {/* Only meaningful once the document is actually going live. */}
       {schema.silentPublish && armed.length > 0 && (

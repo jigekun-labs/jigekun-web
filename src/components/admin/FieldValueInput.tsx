@@ -24,6 +24,17 @@ export function isoToLocalInput(iso: string): string {
 }
 
 /**
+ * The inverse, for submitting: the admin's wall-clock time as an ISO instant.
+ * Sending the bare `datetime-local` string would let the server read it in its
+ * own zone — UTC on Vercel, nine hours off from an admin in Korea.
+ */
+function localInputToIso(local: string): string {
+  if (!local) return "";
+  const d = new Date(local);
+  return Number.isNaN(d.getTime()) ? local : d.toISOString();
+}
+
+/**
  * The value control for one field type. Controlled, and shared by the add and
  * edit forms so a `boolean` is entered the same way in both.
  *
@@ -84,14 +95,16 @@ export default function FieldValueInput({
 
     case "timestamp":
       return (
-        <input
-          name={name}
-          type="datetime-local"
-          step="1"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={INPUT}
-        />
+        <>
+          <input
+            type="datetime-local"
+            step="1"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className={INPUT}
+          />
+          <input type="hidden" name={name} value={localInputToIso(value)} />
+        </>
       );
 
     case "json":

@@ -125,12 +125,25 @@ export async function addFieldToDocument(
  */
 export async function createDocument(
   collection: string,
-  values: Record<string, unknown>
+  values: Record<string, unknown>,
+  /** A chosen id instead of a generated one. Never overwrites: fails if taken. */
+  id?: string
 ): Promise<string> {
-  const ref = await adminDb()
-    .collection(collection)
-    .add({ ...values, createdAt: FieldValue.serverTimestamp() });
-  return ref.id;
+  const data = { ...values, createdAt: FieldValue.serverTimestamp() };
+  const col = adminDb().collection(collection);
+
+  if (!id) return (await col.add(data)).id;
+
+  try {
+    await col.doc(id).create(data);
+  } catch (e) {
+    // gRPC ALREADY_EXISTS
+    if ((e as { code?: number }).code === 6) {
+      throw new Error(`이미 같은 ID의 문서가 있습니다: ${id}`);
+    }
+    throw e;
+  }
+  return id;
 }
 
 /** Server-side timestamp sentinel, for callers outside this module. */

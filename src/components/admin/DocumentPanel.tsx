@@ -5,6 +5,12 @@ import type { CellValue, Row } from "@/lib/firestore-view";
 import AddFieldForm from "./AddFieldForm";
 import EditFieldForm from "./EditFieldForm";
 import AnnouncementStatus from "./AnnouncementStatus";
+import Link from "next/link";
+
+/** A string cell's value, or null. */
+function textOf(cell: CellValue | undefined): string | null {
+  return cell?.kind === "string" ? cell.value : null;
+}
 
 /** The Firestore type name, shown next to each field so an edit is informed. */
 function typeLabel(cell: CellValue | undefined): string {
@@ -132,6 +138,25 @@ export default function DocumentPanel({
       </div>
 
       {collection === "announcements" && <AnnouncementStatus row={row} />}
+      {(() => {
+        // A job (or one of its offers / issues) → that job's 상태 기록.
+        const jobId =
+          collection === "jobListings"
+            ? row.id
+            : collection === "jobOffers"
+              ? textOf(row.cells.jobListingId)
+              : collection === "jobIssues" || collection === "payoutHolds"
+                ? textOf(row.cells.jobId)
+                : null;
+        return jobId ? (
+          <Link
+            href={`/admin/timeline/${encodeURIComponent(jobId)}`}
+            className="block border-b border-gray-100 bg-blue-50 px-5 py-2.5 text-xs font-medium text-blue-700 hover:underline"
+          >
+            이 작업의 상태 기록 보기 →
+          </Link>
+        ) : null;
+      })()}
 
       {view === "json" ? (
         <pre className="whitespace-pre-wrap break-all px-5 py-4 font-mono text-[12px] leading-relaxed text-gray-700">

@@ -23,6 +23,9 @@ const ORDER_FIELD: Record<string, string> = {
   payouts: "createdAt",
   supportChats: "createdAt",
   reviews: "createdAt",
+  payoutHolds: "createdAt",
+  jobIssues: "createdAt",
+  statusEvents: "at",
 };
 
 /**
@@ -37,6 +40,9 @@ const PRIORITY_COLUMNS: Record<string, string[]> = {
   notifications: ["id", "type", "title", "userId", "isRead", "createdAt"],
   announcements: ["id", "title", "isActive", "isImportant", "notified", "createdAt"],
   payouts: ["id", "status", "type", "amount", "workerId", "createdAt"],
+  payoutHolds: ["id", "status", "reason", "amount", "workerName", "requestNo", "createdAt"],
+  jobIssues: ["id", "status", "type", "workerName", "jobId", "note", "createdAt"],
+  statusEvents: ["id", "at", "by", "field", "from", "to", "jobId", "offerId"],
 };
 
 /**
@@ -61,7 +67,10 @@ export const FULL_LOAD_LIMIT = 2000;
  */
 const GLOBAL_LOOKUP: Record<string, string[]> = {
   users: ["email", "profile.phone"],
-  jobListings: ["companyId"],
+  jobListings: ["companyId", "requestNo"],
+  payoutHolds: ["workerId", "companyId", "jobId", "requestNo"],
+  jobIssues: ["workerId", "companyId", "jobId"],
+  statusEvents: ["workerId", "companyId", "jobId", "offerId"],
   jobOffers: ["workerId", "companyId", "jobListingId"],
   notifications: ["userId"],
   penaltyEvents: ["userId", "jobListingId"],
