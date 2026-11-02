@@ -59,8 +59,6 @@ export type CollectionSchema = {
    * something (a coupon code). Creating refuses to overwrite an existing id.
    */
   docId?: { label: string; help: string; placeholder?: string };
-  /** Cross-field check, run on the server after each field has parsed. */
-  validate?: (values: Record<string, unknown>) => string | null;
 };
 
 export const COLLECTION_SCHEMAS: Record<string, CollectionSchema> = {
@@ -171,10 +169,6 @@ export const COLLECTION_SCHEMAS: Record<string, CollectionSchema> = {
         "이름입니다(예: WELCOME). 영문, 숫자, -, _ 만 쓸 수 있고 대문자로 " +
         "저장됩니다. 만든 뒤에는 바꿀 수 없습니다.",
     },
-    validate: (v) =>
-      v.discountType === "percent" && Number(v.discountValue) > 100
-        ? "percent 쿠폰의 할인 값은 100 이하여야 합니다."
-        : null,
     fields: [
       {
         name: "kind",
@@ -293,6 +287,26 @@ export const COLLECTION_SCHEMAS: Record<string, CollectionSchema> = {
 
 export function schemaFor(collection: string): CollectionSchema | null {
   return COLLECTION_SCHEMAS[collection] ?? null;
+}
+
+/**
+ * Checks that span several fields, run by the create action once each field
+ * has parsed. Kept out of the schemas on purpose: a schema is handed to the
+ * create form, a client component, and a function in it cannot be serialized
+ * across that boundary — the page fails to render.
+ */
+export function crossFieldError(
+  collection: string,
+  values: Record<string, unknown>
+): string | null {
+  if (
+    collection === "couponCampaigns" &&
+    values.discountType === "percent" &&
+    Number(values.discountValue) > 100
+  ) {
+    return "percent 쿠폰의 할인 값은 100 이하여야 합니다.";
+  }
+  return null;
 }
 
 /**

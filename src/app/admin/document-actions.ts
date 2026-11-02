@@ -10,7 +10,7 @@ import {
   publishAnnouncement,
   serverNow,
 } from "@/lib/firestore-write";
-import { schemaFor } from "@/lib/collection-schemas";
+import { crossFieldError, schemaFor } from "@/lib/collection-schemas";
 import { blocksToPlainText, validateBlocks } from "@/lib/announcement-blocks";
 
 export type CreateDocState = { ok?: string; error?: string; id?: string };
@@ -111,7 +111,7 @@ export async function createDocumentAction(
     values[field.name] = parsed.value;
   }
 
-  const invalid = schema.validate?.(values);
+  const invalid = crossFieldError(collection, values);
   if (invalid) return { error: invalid };
 
   // Publishing without notifying: pre-stamp the flag the trigger checks, so it
