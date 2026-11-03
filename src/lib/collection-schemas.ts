@@ -328,8 +328,16 @@ export function announcementState(
     return c && c.kind === "bool" ? c.value : undefined;
   };
 
-  if (cell("notified") === true) return "sent";
-  return cell("isActive") === true ? "armed" : "draft";
+  return announcementStateOf(cell("isActive"), cell("notified"));
+}
+
+/** The same, from the raw document fields (for lists read straight from Firestore). */
+export function announcementStateOf(
+  isActive: unknown,
+  notified: unknown
+): AnnouncementState {
+  if (notified === true) return "sent";
+  return isActive === true ? "armed" : "draft";
 }
 
 /**

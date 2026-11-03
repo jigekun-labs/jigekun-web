@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useState } from "react";
+import { useAfterSave } from "./useAfterSave";
 import {
   updateFieldAction,
   type EditFieldState,
@@ -38,7 +38,6 @@ export default function EditFieldForm({
   cells: Record<string, CellValue>;
   onDone: () => void;
 }) {
-  const router = useRouter();
   const [state, formAction, pending] = useActionState<EditFieldState, FormData>(
     updateFieldAction,
     {}
@@ -55,12 +54,7 @@ export default function EditFieldForm({
       : expected.text
   );
 
-  useEffect(() => {
-    if (!state.ok) return;
-    router.refresh();
-    const t = setTimeout(onDone, 900);
-    return () => clearTimeout(t);
-  }, [state.ok, router, onDone]);
+  useAfterSave(state, onDone, 900);
 
   const warning = broadcastWarning(collection, cells, field, value);
 

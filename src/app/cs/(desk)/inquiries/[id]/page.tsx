@@ -8,6 +8,7 @@ import {
   STATUS_LABEL,
   type InquiryStatus,
 } from "@/lib/support-inquiries";
+import { CS_LINKS } from "@/lib/desk-links";
 import LoadError from "@/components/admin/LoadError";
 import InquiryStatusForm from "@/components/cs/InquiryStatusForm";
 import { kst, StatusBadge } from "@/components/cs/inquiry-bits";
@@ -114,7 +115,12 @@ export default async function InquiryPage({
                 </Row>
                 <Row label="사용자 ID">
                   {inquiry.userId ? (
-                    <span className="font-mono text-xs">{inquiry.userId}</span>
+                    <Link
+                      href={CS_LINKS.user(inquiry.userId)}
+                      className="font-mono text-xs underline"
+                    >
+                      {inquiry.userId}
+                    </Link>
                   ) : (
                     <span className="text-xs text-gray-500">
                       계정과 연결되지 않음 (이전 버전 앱)

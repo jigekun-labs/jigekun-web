@@ -152,6 +152,15 @@ export async function otherInquiries(inquiry: Inquiry): Promise<Inquiry[]> {
     .sort(newestFirst);
 }
 
+/** Every inquiry linked to one user doc, newest first. */
+export async function inquiriesForUser(userId: string): Promise<Inquiry[]> {
+  const snap = await adminDb()
+    .collection(INQUIRIES)
+    .where("userId", "==", userId)
+    .get();
+  return snap.docs.map((d) => toInquiry(d.id, d.data())).sort(newestFirst);
+}
+
 /**
  * Moves an inquiry to `to`, recording who did it. Refuses a no-op so a stale
  * page can't log a change that didn't happen.

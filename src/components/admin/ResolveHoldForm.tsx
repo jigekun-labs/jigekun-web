@@ -2,20 +2,28 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { resolveHoldAction, type ResolveState } from "@/app/admin/hold-actions";
+import type { ResolveState } from "@/app/admin/hold-actions";
+
+export type ResolveAction = (
+  prev: ResolveState,
+  formData: FormData
+) => Promise<ResolveState>;
 
 /** Close a held payment: what was done with the money, plus a note. Asks to
  * confirm before writing — it can't be undone from the dashboard. */
 export default function ResolveHoldForm({
   id,
   amount,
+  action,
 }: {
   id: string;
   amount: number;
+  /** /admin's or /cs's resolve action — each checks its own session. */
+  action: ResolveAction;
 }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<ResolveState, FormData>(
-    resolveHoldAction,
+    action,
     {}
   );
   const [outcome, setOutcome] = useState<"" | "paid_worker" | "refunded_employer">("");

@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import type { CollectionSchema } from "@/lib/collection-schemas";
-import CreateDocumentForm from "./CreateDocumentForm";
+import CreateDocumentForm, { type CreateAction } from "./CreateDocumentForm";
 
 /** Header button + modal, shown only on collections with a declared schema. */
 export default function CreateDocumentButton({
   collection,
   schema,
+  action,
 }: {
   collection: string;
   schema: CollectionSchema;
+  action: CreateAction;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -50,6 +52,7 @@ export default function CreateDocumentButton({
             <CreateDocumentForm
               collection={collection}
               schema={schema}
+              action={action}
               onDone={() => setOpen(false)}
             />
           </div>

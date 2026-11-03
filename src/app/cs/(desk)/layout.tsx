@@ -1,5 +1,6 @@
 import { requireCs } from "@/lib/cs-auth";
 import { countByStatus } from "@/lib/support-inquiries";
+import { countHeld } from "@/lib/payout-holds";
 import CsSidebar from "@/components/cs/CsSidebar";
 import { csLogoutAction } from "../actions";
 
@@ -15,16 +16,20 @@ export default async function DeskLayout({
 }) {
   const email = await requireCs();
 
-  // A failed count must not take the whole desk down; the inbox page reports
-  // the underlying error itself.
-  let openCount: number | null = null;
-  try {
-    openCount = (await countByStatus()).open;
-  } catch {}
+  // A failed count must not take the whole desk down; the pages report the
+  // underlying error themselves.
+  const [openInquiries, heldPayouts] = await Promise.all([
+    countByStatus().then((c) => c.open, () => null),
+    countHeld().catch(() => null),
+  ]);
 
   return (
     <div className="flex min-h-screen">
-      <CsSidebar email={email} openCount={openCount} logout={csLogoutAction} />
+      <CsSidebar
+        email={email}
+        badges={{ inquiries: openInquiries, holds: heldPayouts }}
+        logout={csLogoutAction}
+      />
       <main className="flex-1 min-w-0 bg-gray-50">{children}</main>
     </div>
   );

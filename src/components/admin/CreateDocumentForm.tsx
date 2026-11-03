@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  createDocumentAction,
-  type CreateDocState,
-} from "@/app/admin/document-actions";
+import { useActionState, useState } from "react";
+import { useAfterSave } from "./useAfterSave";
+import type { CreateDocState } from "@/app/admin/document-actions";
+
+export type CreateAction = (
+  prev: CreateDocState,
+  formData: FormData
+) => Promise<CreateDocState>;
 import type { CollectionSchema } from "@/lib/collection-schemas";
 import type { Block } from "@/lib/announcement-blocks";
 import FieldValueInput, { INPUT } from "./FieldValueInput";
@@ -21,15 +23,17 @@ import BlockEditor from "./BlockEditor";
 export default function CreateDocumentForm({
   collection,
   schema,
+  action,
   onDone,
 }: {
   collection: string;
   schema: CollectionSchema;
+  /** /admin's or /cs's create action — each checks its own session. */
+  action: CreateAction;
   onDone: () => void;
 }) {
-  const router = useRouter();
   const [state, formAction, pending] = useActionState<CreateDocState, FormData>(
-    createDocumentAction,
+    action,
     {}
   );
 
@@ -42,12 +46,7 @@ export default function CreateDocumentForm({
   // string-keyed `values` map above.
   const [blocks, setBlocks] = useState<Block[]>([]);
 
-  useEffect(() => {
-    if (!state.ok) return;
-    router.refresh();
-    const t = setTimeout(onDone, 1400);
-    return () => clearTimeout(t);
-  }, [state.ok, router, onDone]);
+  useAfterSave(state, onDone, 1400);
 
   const set = (name: string, next: string) =>
     setValues((prev) => ({ ...prev, [name]: next }));

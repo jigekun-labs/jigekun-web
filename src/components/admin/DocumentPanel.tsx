@@ -5,6 +5,8 @@ import type { CellValue, Row } from "@/lib/firestore-view";
 import AddFieldForm from "./AddFieldForm";
 import EditFieldForm from "./EditFieldForm";
 import AnnouncementStatus from "./AnnouncementStatus";
+import { publishAnnouncementAction } from "@/app/admin/document-actions";
+import { announcementState } from "@/lib/collection-schemas";
 import Link from "next/link";
 
 /** A string cell's value, or null. */
@@ -137,7 +139,14 @@ export default function DocumentPanel({
         </div>
       </div>
 
-      {collection === "announcements" && <AnnouncementStatus row={row} />}
+      {collection === "announcements" && (
+        <AnnouncementStatus
+          id={row.id}
+          title={textOf(row.cells.title) ?? row.id}
+          status={announcementState(row.cells)}
+          action={publishAnnouncementAction}
+        />
+      )}
       {(() => {
         // A job (or one of its offers / issues) → that job's 상태 기록.
         const jobId =

@@ -115,6 +115,32 @@ export async function listHolds(open: boolean): Promise<Hold[]> {
     .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
 }
 
+/** How many holds are still waiting to be settled. */
+export async function countHeld(): Promise<number> {
+  const snap = await adminDb()
+    .collection(HOLDS)
+    .where("status", "==", "held")
+    .count()
+    .get();
+  return snap.data().count;
+}
+
+/** Holds where this user is the worker or the requester, newest first. */
+export async function holdsForUser(userId: string): Promise<Hold[]> {
+  const col = adminDb().collection(HOLDS);
+  const [asWorker, asRequester] = await Promise.all([
+    col.where("workerId", "==", userId).get(),
+    col.where("companyId", "==", userId).get(),
+  ]);
+  const byId = new Map<string, Hold>();
+  for (const d of [...asWorker.docs, ...asRequester.docs]) {
+    byId.set(d.id, toHold(d.id, d.data()));
+  }
+  return [...byId.values()].sort((a, b) =>
+    (b.createdAt ?? "").localeCompare(a.createdAt ?? "")
+  );
+}
+
 /** One hold with its issues and the worker's status history on that job. */
 export async function fetchHold(id: string): Promise<{
   hold: Hold;
@@ -204,4 +230,36 @@ export async function resolveHold(
       });
     }
   });
+}
+
+export type ResolveState = { ok?: string; error?: string };
+
+/**
+ * The resolve form's work, shared by /admin and /cs. Not a server action:
+ * each area's action checks its own session and passes who is signed in.
+ */
+export async function resolveHoldFromForm(
+  formData: FormData,
+  by: string
+): Promise<ResolveState & { id?: string }> {
+  const id = String(formData.get("id") ?? "");
+  const outcome = String(formData.get("outcome") ?? "");
+  const note = String(formData.get("note") ?? "").trim().slice(0, 1000);
+  if (!id) return { error: "보류 건을 지정해주세요." };
+  if (outcome !== "paid_worker" && outcome !== "refunded_employer") {
+    return { error: "처리 결과를 선택해주세요." };
+  }
+
+  try {
+    await resolveHold(id, outcome, note, by);
+    return {
+      id,
+      ok:
+        outcome === "paid_worker"
+          ? "작업자에게 지급한 것으로 처리했습니다."
+          : "요청자에게 환불한 것으로 처리했습니다.",
+    };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "처리에 실패했습니다." };
+  }
 }

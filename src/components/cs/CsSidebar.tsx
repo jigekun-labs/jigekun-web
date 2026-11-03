@@ -7,16 +7,22 @@ import { useSelectedLayoutSegments } from "next/navigation";
  * The desk's menu. Unlike /admin's sidebar this is a fixed list of jobs, not
  * every collection: customer service only ever sees what is built for them.
  */
-const MENU = [{ segment: "inquiries", href: "/cs/inquiries", label: "고객 문의" }];
+const MENU = [
+  { segment: "inquiries", href: "/cs/inquiries", label: "고객 문의" },
+  { segment: "holds", href: "/cs/holds", label: "보류 정산" },
+  { segment: "users", href: "/cs/users", label: "사용자 조회" },
+  { segment: "announcements", href: "/cs/announcements", label: "공지사항" },
+  { segment: "faqs", href: "/cs/faqs", label: "자주 묻는 질문" },
+] as const;
 
 export default function CsSidebar({
   email,
-  openCount,
+  badges,
   logout,
 }: {
   email: string;
-  /** Unanswered inquiries; null when the count could not be read. */
-  openCount: number | null;
+  /** Work waiting in a section; null when the count could not be read. */
+  badges: Partial<Record<(typeof MENU)[number]["segment"], number | null>>;
   logout: () => Promise<void>;
 }) {
   const segments = useSelectedLayoutSegments();
@@ -33,6 +39,7 @@ export default function CsSidebar({
       <nav className="flex-1 px-2 py-3">
         {MENU.map((item) => {
           const isActive = active === item.segment;
+          const badge = badges[item.segment];
           return (
             <Link
               key={item.href}
@@ -44,13 +51,13 @@ export default function CsSidebar({
               }`}
             >
               <span>{item.label}</span>
-              {item.segment === "inquiries" && !!openCount && (
+              {!!badge && (
                 <span
                   className={`ml-2 rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${
                     isActive ? "bg-white text-gray-900" : "bg-orange-500 text-white"
                   }`}
                 >
-                  {openCount}
+                  {badge}
                 </span>
               )}
             </Link>

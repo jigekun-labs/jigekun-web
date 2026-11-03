@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAfterSave } from "./useAfterSave";
 import { addFieldAction, type AddFieldState } from "@/app/admin/field-actions";
 import { FIELD_TYPES, validateFieldName, type FieldType } from "@/lib/field-types";
 import FieldValueInput, { INPUT } from "./FieldValueInput";
@@ -29,7 +29,6 @@ export default function AddFieldForm({
   /** Called after a successful write — closes the modal / collapses the form. */
   onDone?: () => void;
 }) {
-  const router = useRouter();
   const [state, formAction, pending] = useActionState<AddFieldState, FormData>(
     addFieldAction,
     {}
@@ -47,12 +46,7 @@ export default function AddFieldForm({
 
   // The table is rendered from a server component, so a write only shows up
   // after the route re-renders.
-  useEffect(() => {
-    if (!state.ok) return;
-    router.refresh();
-    const t = setTimeout(() => onDone?.(), 1200);
-    return () => clearTimeout(t);
-  }, [state.ok, router, onDone]);
+  useAfterSave(state, onDone, 1200);
 
   const hint = FIELD_TYPES.find((t) => t.value === type)?.hint;
 

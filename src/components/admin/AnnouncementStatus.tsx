@@ -2,12 +2,13 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  publishAnnouncementAction,
-  type PublishState,
-} from "@/app/admin/document-actions";
-import { announcementState } from "@/lib/collection-schemas";
-import type { Row } from "@/lib/firestore-view";
+import type { PublishState } from "@/app/admin/document-actions";
+import type { AnnouncementState } from "@/lib/collection-schemas";
+
+export type PublishAction = (
+  prev: PublishState,
+  formData: FormData
+) => Promise<PublishState>;
 
 /**
  * Where this announcement stands with the app's fan-out trigger, and the only
@@ -17,18 +18,25 @@ import type { Row } from "@/lib/firestore-view";
  * and the app's `onAnnouncementPublished` Cloud Function does the rest — which
  * is also why an "armed" document is dangerous to touch at all.
  */
-export default function AnnouncementStatus({ row }: { row: Row }) {
+export default function AnnouncementStatus({
+  id,
+  title,
+  status,
+  action,
+}: {
+  id: string;
+  title: string;
+  status: AnnouncementState;
+  /** /admin's or /cs's publish action — each checks its own session. */
+  action: PublishAction;
+}) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<PublishState, FormData>(
-    publishAnnouncementAction,
+    action,
     {}
   );
   // null = not confirming; "loud" = publish + notify; "silent" = publish only.
   const [confirming, setConfirming] = useState<"loud" | "silent" | null>(null);
-
-  const status = announcementState(row.cells);
-  const title =
-    row.cells.title?.kind === "string" ? row.cells.title.value : row.id;
 
   useEffect(() => {
     if (state.ok) router.refresh();
@@ -82,7 +90,7 @@ export default function AnnouncementStatus({ row }: { row: Row }) {
       {!state.ok &&
         (confirming ? (
           <form action={formAction} className="mt-2 space-y-2">
-            <input type="hidden" name="id" value={row.id} />
+            <input type="hidden" name="id" value={id} />
             {confirming === "silent" && (
               <input type="hidden" name="silent" value="true" />
             )}

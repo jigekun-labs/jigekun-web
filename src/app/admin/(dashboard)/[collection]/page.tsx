@@ -12,6 +12,7 @@ import {
 import DataTable from "@/components/admin/DataTable";
 import AddFieldButton from "@/components/admin/AddFieldButton";
 import CreateDocumentButton from "@/components/admin/CreateDocumentButton";
+import { createDocumentAction } from "@/app/admin/document-actions";
 import LoadError from "@/components/admin/LoadError";
 import { schemaFor } from "@/lib/collection-schemas";
 
@@ -78,7 +79,11 @@ export default async function CollectionPage({
         <div className="flex shrink-0 items-center gap-2">
           <AddFieldButton collection={collection} docCount={total} />
           {schema && (
-            <CreateDocumentButton collection={collection} schema={schema} />
+            <CreateDocumentButton
+              collection={collection}
+              schema={schema}
+              action={createDocumentAction}
+            />
           )}
         </div>
       </header>
