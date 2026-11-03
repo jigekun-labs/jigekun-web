@@ -1,58 +1,40 @@
-import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+/* eslint-disable @next/next/no-img-element -- sized entirely by site.css */
 import { Link } from "@/i18n/navigation";
 
-export default async function Footer() {
-  const t = await getTranslations("Footer");
-
+export default function Footer() {
   return (
-    <footer className="bg-[var(--gray-900)] text-[var(--gray-400)]">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <Image src="/icon.png" alt="GGUN" width={32} height={32} className="rounded-lg" />
-              <span className="text-xl font-bold text-white">지게꾼</span>
-            </div>
-            <p className="text-sm leading-relaxed max-w-sm">
-              {t("tagline")}
-            </p>
-            <div className="mt-6 space-y-1 text-xs leading-relaxed text-[var(--gray-400)]">
-              <p>{t("business.companyName")}</p>
-              <p>{t("business.address")}</p>
-              <p>{t("business.ceo")}</p>
-              <p>{t("business.phoneLabel")} : <a href="tel:01049668305" className="hover:text-white transition-colors">010-4966-8305</a></p>
-              <p>{t("business.businessNumber")}</p>
-              <p>{t("business.mailOrderNumber")}</p>
-              <p>{t("business.emailLabel")} : <a href="mailto:info@jigekun.com" className="hover:text-white transition-colors">info@jigekun.com</a></p>
-            </div>
-          </div>
-
+    <footer>
+      <div className="wrap">
+        <div className="foot">
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4">{t("product")}</h4>
-            <ul className="space-y-2.5 text-sm">
-              <li><a href="#features" className="hover:text-white transition-colors">{t("features")}</a></li>
-              <li><a href="#how-it-works" className="hover:text-white transition-colors">{t("howItWorks")}</a></li>
-              <li><a href="#download" className="hover:text-white transition-colors">{t("download")}</a></li>
-            </ul>
+            <Link href="/" className="brand">
+              <img src="/icon.png" alt="" width={32} height={32} />
+              지게꾼
+            </Link>
+            <address>
+              주식회사 지게꾼랩스 · 대표 유준형
+              <br />
+              서울특별시 중구 동호로14길 19, 4층 454호 (신당동)
+              <br />
+              사업자등록번호 315-88-03756 · 통신판매업신고 2026-서울중구-847
+              <br />
+              전화 <a href="tel:01049668305">010-4966-8305</a> · 이메일{" "}
+              <a href="mailto:info@jigekun.com">info@jigekun.com</a>
+            </address>
           </div>
-
-          <div>
-            <h4 className="text-white font-semibold text-sm mb-4">{t("company")}</h4>
-            <ul className="space-y-2.5 text-sm">
-              <li><Link href="/terms" className="hover:text-white transition-colors">{t("terms")}</Link></li>
-              <li><Link href="/privacy" className="hover:text-white transition-colors">{t("privacy")}</Link></li>
-              <li><Link href="/refund-policy" className="hover:text-white transition-colors">{t("refundPolicy")}</Link></li>
-              <li><Link href="/delete-account" className="hover:text-white transition-colors">{t("deleteAccount")}</Link></li>
-              <li><a href="mailto:info@jigekun.com" className="hover:text-white transition-colors">{t("contact")}</a></li>
-            </ul>
-          </div>
+          <nav className="foot-links" aria-label="정책 및 고객지원">
+            <Link href="/terms">이용약관</Link>
+            <Link href="/privacy">
+              <b>개인정보처리방침</b>
+            </Link>
+            <Link href="/refund-policy">환불정책</Link>
+            <Link href="/delete-account">계정 삭제</Link>
+            <a href="mailto:info@jigekun.com">문의하기</a>
+          </nav>
         </div>
-
-        <div className="mt-12 pt-8 border-t border-[var(--gray-700)] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs">{t("rights", { year: new Date().getFullYear() })}</p>
-          <p className="text-xs">{t("koreanTagline")}</p>
-        </div>
+        <p className="copy">
+          © {new Date().getFullYear()} 지게꾼랩스. All rights reserved.
+        </p>
       </div>
     </footer>
   );
