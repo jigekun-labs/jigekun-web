@@ -162,6 +162,83 @@ export async function inquiriesForUser(userId: string): Promise<Inquiry[]> {
 }
 
 /**
+ * supportInquiries/{id}/replies — answers written here and emailed by the
+ * app's `onSupportReplyCreated` Cloud Function, which flips `status` from
+ * "queued" to "sent" (or "failed", with `error`) and marks the inquiry 답변함.
+ */
+export type ReplyStatus = "queued" | "sending" | "sent" | "failed";
+
+export type Reply = {
+  id: string;
+  to: string;
+  subject: string;
+  body: string;
+  by: string;
+  status: ReplyStatus;
+  error: string | null;
+  createdAt: string | null;
+  sentAt: string | null;
+};
+
+const REPLY_STATUSES: ReplyStatus[] = ["queued", "sending", "sent", "failed"];
+
+/** An inquiry's replies, oldest first — read like a conversation. */
+export async function listReplies(inquiryId: string): Promise<Reply[]> {
+  const snap = await adminDb()
+    .collection(INQUIRIES)
+    .doc(inquiryId)
+    .collection("replies")
+    .get();
+  return snap.docs
+    .map((d) => {
+      const status = d.get("status");
+      return {
+        id: d.id,
+        to: String(d.get("to") ?? ""),
+        subject: String(d.get("subject") ?? ""),
+        body: String(d.get("body") ?? ""),
+        by: String(d.get("by") ?? ""),
+        status: REPLY_STATUSES.includes(status) ? (status as ReplyStatus) : "queued",
+        error: str(d.get("error")),
+        createdAt: iso(d.get("createdAt")),
+        sentAt: iso(d.get("sentAt")),
+      };
+    })
+    .sort((a, b) => (a.createdAt ?? "").localeCompare(b.createdAt ?? ""));
+}
+
+export const REPLY_LIMITS = { subject: 200, body: 5000 };
+
+/**
+ * Queues an email answer for the Cloud Function to send. It always goes to
+ * the address the inquiry came from — the form can't name another, so this
+ * desk can't be used to mail anyone else.
+ */
+export async function queueReply(
+  inquiryId: string,
+  subject: string,
+  body: string,
+  by: string
+): Promise<void> {
+  const ref = adminDb().collection(INQUIRIES).doc(inquiryId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new Error("문의를 찾을 수 없습니다.");
+  const to = str(snap.get("email"));
+  if (!to) {
+    throw new Error("이메일 주소가 없는 문의예요. 전화로 연락해 주세요.");
+  }
+
+  await ref.collection("replies").add({
+    to,
+    subject: subject.trim().slice(0, REPLY_LIMITS.subject),
+    body: body.slice(0, REPLY_LIMITS.body),
+    by,
+    status: "queued",
+    createdAt: FieldValue.serverTimestamp(),
+  });
+}
+
+/**
  * Moves an inquiry to `to`, recording who did it. Refuses a no-op so a stale
  * page can't log a change that didn't happen.
  */

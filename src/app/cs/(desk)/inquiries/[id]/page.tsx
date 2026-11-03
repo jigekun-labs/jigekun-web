@@ -3,14 +3,18 @@ import { notFound } from "next/navigation";
 import { requireCs } from "@/lib/cs-auth";
 import {
   getInquiry,
+  listReplies,
   otherInquiries,
   ROLE_LABEL,
   STATUS_LABEL,
   type InquiryStatus,
+  type ReplyStatus,
 } from "@/lib/support-inquiries";
 import { CS_LINKS } from "@/lib/desk-links";
 import LoadError from "@/components/admin/LoadError";
 import InquiryStatusForm from "@/components/cs/InquiryStatusForm";
+import ReplyForm from "@/components/cs/ReplyForm";
+import RefreshWhilePending from "@/components/cs/RefreshWhilePending";
 import { kst, StatusBadge } from "@/components/cs/inquiry-bits";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -22,6 +26,13 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
+const REPLY_BADGE: Record<ReplyStatus, [string, string]> = {
+  queued: ["발송 대기", "bg-yellow-50 text-yellow-800"],
+  sending: ["발송 중", "bg-yellow-50 text-yellow-800"],
+  sent: ["발송됨", "bg-green-50 text-green-700"],
+  failed: ["발송 실패", "bg-red-50 text-red-700"],
+};
+
 export default async function InquiryPage({
   params,
 }: {
@@ -30,10 +41,12 @@ export default async function InquiryPage({
   await requireCs();
   const { id } = await params;
 
-  let inquiry, others;
+  let inquiry, others, replies;
   try {
     inquiry = await getInquiry(decodeURIComponent(id));
-    others = inquiry ? await otherInquiries(inquiry) : [];
+    [others, replies] = inquiry
+      ? await Promise.all([otherInquiries(inquiry), listReplies(inquiry.id)])
+      : [[], []];
   } catch (e) {
     return <LoadError error={e} />;
   }
@@ -64,6 +77,59 @@ export default async function InquiryPage({
               <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-800">
                 {inquiry.message}
               </p>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+              <h2 className="text-sm font-semibold text-gray-900">
+                답변
+                {replies.length > 0 && (
+                  <span className="ml-1 font-normal tabular-nums text-gray-400">
+                    {replies.length}
+                  </span>
+                )}
+              </h2>
+              <RefreshWhilePending
+                pending={replies.some((r) => r.status === "queued" || r.status === "sending")}
+              />
+              {replies.length > 0 && (
+                <ul className="mt-3 space-y-3">
+                  {replies.map((r) => {
+                    const [label, style] = REPLY_BADGE[r.status];
+                    return (
+                      <li key={r.id} className="rounded-lg bg-gray-50 px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                          <span className={`rounded px-1.5 py-0.5 ${style}`}>{label}</span>
+                          <span>{r.by}</span>
+                          <span>· {kst(r.sentAt ?? r.createdAt)}</span>
+                          <span className="ml-auto">→ {r.to}</span>
+                        </div>
+                        <p className="mt-2 text-sm font-medium text-gray-900">{r.subject}</p>
+                        <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-700">
+                          {r.body}
+                        </p>
+                        {r.error && (
+                          <p className="mt-2 text-xs text-red-700">
+                            {r.error} — 내용을 확인하고 다시 보내 주세요.
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {inquiry.email ? (
+                <ReplyForm
+                  id={inquiry.id}
+                  to={inquiry.email}
+                  name={inquiry.name}
+                  title={inquiry.title}
+                />
+              ) : (
+                <p className="mt-3 text-sm text-gray-500">
+                  이메일 주소가 없는 문의라 메일로 답변할 수 없어요.
+                  {inquiry.phone ? ` 전화(${inquiry.phone})로 연락해 주세요.` : ""}
+                </p>
+              )}
             </div>
 
             <div className="rounded-xl border border-gray-200 bg-white p-5">
