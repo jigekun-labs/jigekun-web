@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { currentAdmin } from "@/lib/admin-auth";
 import LoginForm from "@/components/admin/LoginForm";
+import { loginAction } from "../actions";
 
 export default async function LoginPage() {
   // Already signed in — skip the form.
@@ -15,7 +16,7 @@ export default async function LoginPage() {
             관리자 계정으로 로그인하세요
           </p>
         </div>
-        <LoginForm />
+        <LoginForm action={loginAction} />
       </div>
     </main>
   );

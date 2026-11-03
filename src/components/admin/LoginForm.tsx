@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { loginAction, type LoginState } from "@/app/admin/actions";
+import type { LoginState } from "@/app/admin/actions";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -17,11 +17,13 @@ function SubmitButton() {
   );
 }
 
-export default function LoginForm() {
-  const [state, formAction] = useActionState<LoginState, FormData>(
-    loginAction,
-    {}
-  );
+/** Shared by /admin and /cs — each passes its own sign-in action. */
+export default function LoginForm({
+  action,
+}: {
+  action: (prev: LoginState, formData: FormData) => Promise<LoginState>;
+}) {
+  const [state, formAction] = useActionState<LoginState, FormData>(action, {});
 
   return (
     <form
