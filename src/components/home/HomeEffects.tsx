@@ -61,6 +61,91 @@ function reveal(): Cleanup {
   return () => io.disconnect();
 }
 
+/** CSS matrix3d taking the 402×874 app screen onto the quad `Q` (TL, TR, BR, BL). */
+function quadMatrix(Q: number[][]): string {
+  const w = 402;
+  const h = 874;
+  const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = Q;
+  const dx1 = x1 - x2;
+  const dx2 = x3 - x2;
+  const dx3 = x0 - x1 + x2 - x3;
+  const dy1 = y1 - y2;
+  const dy2 = y3 - y2;
+  const dy3 = y0 - y1 + y2 - y3;
+  const den = dx1 * dy2 - dx2 * dy1;
+  const g = (dx3 * dy2 - dx2 * dy3) / den;
+  const hh = (dx1 * dy3 - dx3 * dy1) / den;
+  const a = x1 - x0 + g * x1;
+  const b = x3 - x0 + hh * x3;
+  const c = x0;
+  const d = y1 - y0 + g * y1;
+  const e = y3 - y0 + hh * y3;
+  const f = y0;
+  return (
+    "matrix3d(" +
+    [a / w, d / w, 0, g / w, b / h, e / h, 0, hh / h, 0, 0, 1, 0, c, f, 0, 1].join(",") +
+    ")"
+  );
+}
+
+/**
+ * The rendered phone mockups (.rphone, 848×1264 photos): where each photo's
+ * screen corners are, in image pixels. A new photo needs new corners and new
+ * mask PNGs to match.
+ */
+const RPHONE_W = 848;
+const RPHONE_QUAD: Record<string, number[][]> = {
+  light: [
+    [248.8, 244.8],
+    [566.2, 177.5],
+    [568.5, 1020.2],
+    [246.3, 1070.9],
+  ],
+  navy: [
+    [287.0, 151.9],
+    [596.0, 204.7],
+    [596.0, 1076.6],
+    [287.0, 1088.5],
+  ],
+};
+
+/** That phone's screen quad, flipped for `.mirror` and grown a hair to hide seams. */
+function rphoneQuad(el: HTMLElement): number[][] {
+  let q = RPHONE_QUAD[el.dataset.model ?? "light"].map((p) => p.slice());
+  if (el.classList.contains("mirror")) {
+    const m = (p: number[]) => [RPHONE_W - p[0], p[1]];
+    q = [m(q[1]), m(q[0]), m(q[3]), m(q[2])];
+  }
+  const cx = q.reduce((s, p) => s + p[0] / 4, 0);
+  const cy = q.reduce((s, p) => s + p[1] / 4, 0);
+  return q.map((p) => [cx + (p[0] - cx) * 1.006, cy + (p[1] - cy) * 1.006]);
+}
+
+/** Maps every mockup's app screen onto its photo and keeps the scale (--k) in step with its size. */
+function rphones(): Cleanup {
+  const phones = Array.from(document.querySelectorAll<HTMLElement>(".rphone"));
+  phones.forEach((el) => {
+    el.querySelector<HTMLElement>(".rp-screen")!.style.transform = quadMatrix(rphoneQuad(el));
+  });
+  const fit = (el: HTMLElement) => {
+    if (el.offsetWidth) el.style.setProperty("--k", (el.offsetWidth / RPHONE_W).toFixed(5));
+  };
+  const ro =
+    "ResizeObserver" in window
+      ? new ResizeObserver((entries) => entries.forEach((e) => fit(e.target as HTMLElement)))
+      : null;
+  phones.forEach((el) => {
+    ro?.observe(el);
+    fit(el);
+  });
+  const onResize = () => phones.forEach(fit);
+  addEventListener("resize", onResize);
+  return () => {
+    ro?.disconnect();
+    removeEventListener("resize", onResize);
+  };
+}
+
 /**
  * Intro: over 700vh of scroll, the wide office photo cuts to a close-up, the
  * app lights up on the in-hand screen, the photo shrinks to a rounded card,
@@ -87,31 +172,8 @@ function intro(): Cleanup {
   const FOCUS_WIDE = [990, 420];
   const FOCUS_CLOSE = [cx, cy];
 
-  // Perspective transform taking the 402×874 screen onto quad Q.
-  {
-    const w = 402;
-    const h = 874;
-    const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = Q;
-    const dx1 = x1 - x2;
-    const dx2 = x3 - x2;
-    const dx3 = x0 - x1 + x2 - x3;
-    const dy1 = y1 - y2;
-    const dy2 = y3 - y2;
-    const dy3 = y0 - y1 + y2 - y3;
-    const den = dx1 * dy2 - dx2 * dy1;
-    const g = (dx3 * dy2 - dx2 * dy3) / den;
-    const hh = (dx1 * dy3 - dx3 * dy1) / den;
-    const a = x1 - x0 + g * x1;
-    const b = x3 - x0 + hh * x3;
-    const c = x0;
-    const d = y1 - y0 + g * y1;
-    const e = y3 - y0 + hh * y3;
-    const f = y0;
-    $("ixHandScreen").style.transform =
-      "matrix3d(" +
-      [a / w, d / w, 0, g / w, b / h, e / h, 0, hh / h, 0, 0, 1, 0, c, f, 0, 1].join(",") +
-      ")";
-  }
+  // The app on the in-hand screen, mapped onto quad Q.
+  $("ixHandScreen").style.transform = quadMatrix(Q);
 
   const bg = $("ixBg");
   const wide = $("ixWide");
@@ -129,6 +191,16 @@ function intro(): Cleanup {
   const handImgs = Array.from(document.querySelectorAll<HTMLElement>("#ixHandScreen img"));
   const phoneImgs = Array.from(phone.querySelectorAll<HTMLElement>(".scr img"));
   const narrow = matchMedia("(max-width:860px)");
+  // The lifting phone's screen, in its photo's pixels.
+  const phoneQ = rphoneQuad(iphone);
+  const phoneScreenC = [
+    phoneQ.reduce((s, p) => s + p[0] / 4, 0),
+    phoneQ.reduce((s, p) => s + p[1] / 4, 0),
+  ];
+  const phoneScreenW =
+    (Math.hypot(phoneQ[1][0] - phoneQ[0][0], phoneQ[1][1] - phoneQ[0][1]) +
+      Math.hypot(phoneQ[2][0] - phoneQ[3][0], phoneQ[2][1] - phoneQ[3][1])) /
+    2;
 
   function place(
     el: HTMLElement,
@@ -192,26 +264,28 @@ function intro(): Cleanup {
     const hand = seg(p, 0.63, 0.82);
     const fade = seg(p, 0.62, 0.67);
     const pc = pl.map(PHONE_C[0], PHONE_C[1]);
-    const photoW =
-      (((Math.hypot(Q[1][0] - Q[0][0], Q[1][1] - Q[0][1]) +
+    // From the screen's width in the photo to the hero size, moving and turning
+    // about the screen's centre so it stays in the hand until it lifts.
+    const photoSW =
+      ((Math.hypot(Q[1][0] - Q[0][0], Q[1][1] - Q[0][1]) +
         Math.hypot(Q[2][0] - Q[3][0], Q[2][1] - Q[3][1])) /
         2) *
-        pl.S) /
-      0.93 *
-      1.09;
-    const finalW = nar
-      ? Math.min(vw * 0.42, 190, vh * 0.22)
-      : Math.min(vw * 0.23, 310, vh * 0.37);
+      pl.S;
+    const finalSW = nar
+      ? Math.min(vw * 0.42, 190, vh * 0.22) * 0.93
+      : Math.min(vw * 0.17, 240, vh * 0.235);
     const fcx = nar ? vw / 2 : vw * 0.68;
     const fcy = nar ? vh * 0.8 : vh * 0.53;
-    const wpx = lerp(photoW, finalW, hand);
+    const ws = lerp(photoSW, finalSW, hand);
     const x = lerp(pc[0], fcx, hand);
     const y = lerp(pc[1], fcy, hand);
-    iphone.style.setProperty("--w", wpx.toFixed(1) + "px");
-    iphone.style.setProperty("--rz", lerp(-14, 1, hand).toFixed(2) + "deg");
-    iphone.style.setProperty("--rx", lerp(9, 6, hand).toFixed(2) + "deg");
-    iphone.style.setProperty("--ry", lerp(0, -14, hand).toFixed(2) + "deg");
-    phone.style.transform = `translate(${(x - wpx / 2).toFixed(1)}px,${(y - (wpx * 149.6) / 71.5 / 2).toFixed(1)}px)`;
+    const pw = (RPHONE_W * ws) / phoneScreenW;
+    const kk = pw / RPHONE_W;
+    iphone.style.width = pw.toFixed(1) + "px";
+    iphone.style.setProperty("--k", kk.toFixed(5));
+    iphone.style.transformOrigin = `${(phoneScreenC[0] * kk).toFixed(1)}px ${(phoneScreenC[1] * kk).toFixed(1)}px`;
+    iphone.style.transform = `rotate(${lerp(-14, 0, hand).toFixed(2)}deg)`;
+    phone.style.transform = `translate(${(x - phoneScreenC[0] * kk).toFixed(1)}px,${(y - phoneScreenC[1] * kk).toFixed(1)}px)`;
     const lifted = p >= 0.62;
     phone.style.opacity = lifted ? (nar ? (1 - seg(p, 0.84, 0.9)).toFixed(3) : "1") : "0";
     inhand.style.visibility = lifted ? "hidden" : "visible";
@@ -363,7 +437,7 @@ function features(): Cleanup {
 /** Wires up the home page's scroll-driven motion. Renders nothing. */
 export default function HomeEffects() {
   useEffect(() => {
-    const cleanups = [reveal(), intro(), rail(), features()];
+    const cleanups = [reveal(), rphones(), intro(), rail(), features()];
     return () => cleanups.forEach((off) => off());
   }, []);
 

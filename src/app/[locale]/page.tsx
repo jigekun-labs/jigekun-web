@@ -3,7 +3,7 @@
    which next/image's wrapper and srcset would fight. */
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import IPhone from "@/components/home/IPhone";
+import RPhone from "@/components/home/RPhone";
 import HomeEffects from "@/components/home/HomeEffects";
 
 const APP_STORE_URL =
@@ -141,10 +141,10 @@ function StepList({ steps }: { steps: Step[] }) {
   );
 }
 
-function StepPhone({ steps, flip }: { steps: Step[]; flip?: boolean }) {
+function StepPhone({ steps, mirror }: { steps: Step[]; mirror?: boolean }) {
   return (
     <div className="feat-stage">
-      <IPhone flip={flip}>
+      <RPhone model="light" mirror={mirror}>
         {steps.map((s, i) => (
           <img
             key={s.screen}
@@ -157,7 +157,7 @@ function StepPhone({ steps, flip }: { steps: Step[]; flip?: boolean }) {
             loading="lazy"
           />
         ))}
-      </IPhone>
+      </RPhone>
       <p className="caption">화면 예시 · 데모 데이터</p>
     </div>
   );
@@ -265,7 +265,7 @@ export default function Home() {
               </div>
 
               <div className="ix-phone" id="ixPhone">
-                <IPhone id="ixIphone">
+                <RPhone model="light" mirror id="ixIphone" lazy={false}>
                   <img className="on" data-s="1" src="/assets/screens/r-assign.svg" alt="배정 중 화면" width={402} height={874} />
                   <img
                     data-s="2"
@@ -274,7 +274,7 @@ export default function Home() {
                     width={402}
                     height={874}
                   />
-                </IPhone>
+                </RPhone>
               </div>
             </div>
           </div>
@@ -306,7 +306,7 @@ export default function Home() {
                   </h2>
                   <StepList steps={REQUESTER_STEPS} />
                 </div>
-                <StepPhone steps={REQUESTER_STEPS} flip />
+                <StepPhone steps={REQUESTER_STEPS} />
               </div>
             </div>
           </div>
@@ -316,7 +316,7 @@ export default function Home() {
           <div className="feat-track" style={{ "--n": WORKER_STEPS.length } as React.CSSProperties}>
             <div className="feat-sticky">
               <div className="wrap feat-grid">
-                <StepPhone steps={WORKER_STEPS} />
+                <StepPhone steps={WORKER_STEPS} mirror />
                 <div className="feat-copy">
                   <p className="kicker">
                     <i />
@@ -382,15 +382,16 @@ export default function Home() {
             </div>
             <div className="single stage tilt rv rise d2">
               <div className="glow" aria-hidden="true" />
-              <IPhone flip>
+              <RPhone model="navy" mirror>
                 <img
+                  className="base is-on"
                   src="/assets/screens/w-card.svg"
                   alt="작업자 프로필 카드: 신뢰도 점수와 완료 횟수"
                   width={402}
                   height={874}
                   loading="lazy"
                 />
-              </IPhone>
+              </RPhone>
             </div>
           </div>
         </section>
